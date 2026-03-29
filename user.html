@@ -210,6 +210,9 @@
         let currentUser = null;
         let activeSession = null; 
         let timerInterval = null;
+        let globalTimer = null;
+        let reservationLimit = 300000 // reservation expires after 5 minutes, for testing purposes
+        let finalWarningLimit = 90000 // final warning at 1m 30s
 
         // Initialize App
         function initApp() {
@@ -219,7 +222,14 @@
             const savedUser = localStorage.getItem('asuUser');
             const savedSession = localStorage.getItem('asuSession');
             
-            if(savedSession) activeSession = JSON.parse(savedSession);
+            if (savedSession) {
+                activeSession = JSON.parse(savedSession);
+            
+                // ensure reservedAt exists
+                if (!activeSession.reservedAt) {
+                    activeSession.reservedAt = Date.now();
+                }
+            }
 
             if(savedUser) {
                 currentUser = JSON.parse(savedUser);
@@ -227,6 +237,22 @@
             } else {
                 renderMap(); 
             }
+            globalTimer = setInterval(checkReservationStatus, 1000);
+            
+            // Free expired user reservations on load
+            spots.forEach(spot => {
+                // Check for a user-reserved spot
+                if (spot.reservedAt) {
+                    const elapsed = Date.now() - spot.reservedAt;
+                    if (elapsed > reservationLimit) {
+                        // Free the spot and remove the timestamp
+                        spot.status = 'empty';
+                        delete spot.reservedAt;
+                    }
+                }
+            });
+            
+            localStorage.setItem('asuSpots', JSON.stringify(spots));
         }
 
         // --- Auth Logic ---
@@ -346,8 +372,16 @@
                 return;
             }
             
+            const dateNow = Date.now();
             spot.status = 'occupied';
-            activeSession = { spotId: spot.id, startTime: Date.now() };
+            spot.reservedAt = dateNow;
+            activeSession = {
+                spotId: spot.id,
+                startTime: dateNow,
+                reservedAt: dateNow,
+                halfTimeWarned: false,
+                finalWarned: false
+            };
             localStorage.setItem('asuSession', JSON.stringify(activeSession));
             
             showToast(`✅ Spot ${spot.id} Reserved! Timer started.`);
@@ -401,7 +435,7 @@
             timerInterval = setInterval(updateTimerDisplay, 1000);
         }
 
-        function updateTimerDisplay() {
+        function updateTimerDisplay() {            
             if(!activeSession) return;
             const elapsedMs = Date.now() - activeSession.startTime;
             const totalSeconds = Math.floor(elapsedMs / 1000);
@@ -414,6 +448,12 @@
             
             document.getElementById('dynamic-duration').innerText = `${mins.toString().padStart(2, '0')}m ${secs.toString().padStart(2, '0')}s`;
             document.getElementById('dynamic-fee').innerText = `$${fee.toFixed(2)}`;
+            
+            const remaining = Math.max(0, reservationLimit - (Date.now() - activeSession.reservedAt));
+            const remainingMins = Math.floor(Math.floor(remaining / 1000) / 60);
+            const remainingSecs = Math.floor(remaining / 1000) % 60;
+            document.getElementById('session-status').innerText =
+                `⏳ ${(remainingMins > 0) ? (remainingMins.toString() + 'm ') : ' '}${remainingSecs.toString().padStart(2, '0')}s remaining`;
         }
 
         function processPayment() {
@@ -425,11 +465,7 @@
                 clearInterval(timerInterval);
                 showToast("💳 Payment Successful! Gate opening...", true);
                 
-                const mySpot = spots.find(s => s.id === activeSession.spotId);
-                if(mySpot) mySpot.status = 'empty';
-                
-                activeSession = null;
-                localStorage.removeItem('asuSession');
+                clearSession();
                 
                 setTimeout(() => {
                     btn.innerText = 'Pay Now';
@@ -439,6 +475,86 @@
                 }, 1500);
 
             }, 1000); 
+        }
+
+        function checkReservationStatus() {
+            const now = Date.now();
+            let spotsChanged = false;
+            
+            // Expire user-reserved spots properly
+            spots.forEach(spot => {
+                if (spot.reservedAt) {
+                    const elapsed = now - spot.reservedAt;
+                    if (elapsed >= reservationLimit) {
+                        spot.status = 'empty';
+                        delete spot.reservedAt;
+                        spotsChanged = true;
+        
+                        // If this was the current activeSession, clear it
+                        if (activeSession && activeSession.spotId === spot.id) {
+                            showToast("⏱️ Reservation expired!", false);
+                            activeSession = null;
+                            localStorage.removeItem('asuSession');
+                            switchView('map')
+                        }
+                    }
+                }
+            });
+            
+            if (spotsChanged) {
+                localStorage.setItem('asuSpots', JSON.stringify(spots));
+                renderMap();
+            }
+            
+            if (!activeSession || !activeSession.reservedAt) return;
+            
+            const remaining = Math.max(0, reservationLimit - (now - activeSession.reservedAt));
+            const remainingMins = Math.floor(Math.floor(remaining / 1000) / 60);
+            const remainingSecs = Math.floor(remaining / 1000) % 60;
+            
+            const reservationLimitSecs = Math.floor(reservationLimit / 1000);
+            const reservationLimitMins = Math.floor(reservationLimitSecs / 60);
+            
+            const finalWarningLimitSecs = Math.floor(finalWarningLimit / 1000);
+            const finalWarningLimitMins = Math.floor(finalWarningLimitSecs / 60);
+            const finalWarningLimitSecsMod = finalWarningLimitSecs % 60
+            
+            // Half-time warning
+            if (!activeSession.halfTimeWarned && remaining <= (reservationLimit / 2) && remaining > finalWarningLimit) {
+                showToast(`⚠️ ${(Math.floor(reservationLimitMins / 2) > 0) ? (Math.floor(reservationLimitMins / 2).toString() + 'm ') : ' '}${Math.floor((reservationLimitSecs / 2) % 60).toString().padStart(2, '0')}s remaining on your reservation!`, false);
+                activeSession.halfTimeWarned = true;
+                localStorage.setItem('asuSession', JSON.stringify(activeSession));
+            }
+        
+            // Final warning
+            if (!activeSession.finalWarned && remaining <= finalWarningLimit && remaining > 0) {
+                showToast(`🚨 Only ${(finalWarningLimitMins > 0) ? (finalWarningLimitMins.toString() + 'm ') : ' '}${finalWarningLimitSecsMod.toString().padStart(2, '0')}s left!`, false);
+                activeSession.finalWarned = true;
+                localStorage.setItem('asuSession', JSON.stringify(activeSession));
+            }
+        
+            // Expire reservation
+            if (remaining <= 0) {
+                showToast("⏱️ Reservation expired!", false);
+        
+                clearSession();
+        
+                renderMap();
+                switchView('map');
+                return;
+            }
+        }
+
+        function clearSession() {
+            const mySpot = spots.find(s => s.id === activeSession?.spotId);
+            if (mySpot) {
+                mySpot.status = 'empty';
+                delete mySpot.reservedAt;
+            }
+        
+            activeSession = null;
+            localStorage.removeItem('asuSession');
+            localStorage.setItem('asuSpots', JSON.stringify(spots));
         }
 
         // Run on load
