@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASU Smart Parking | Driver App</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #e2e8f0; 
+            color: #1e293b;
+            display: flex;
+            justify-content: center;
+        }
+        
+        /* Restrict container to mobile app (smartphone) aspect ratio */
+        .mobile-container {
+            width: 100%;
+            max-width: 414px; /* Standard smartphone width */
+            background-color: #f8fafc;
+            min-height: 100vh;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        /* App Header */
+        .app-header {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .app-header h1 { margin: 0; font-size: 1.4rem; font-weight: 800; }
+        .app-header p { margin: 5px 0 0 0; color: #94a3b8; font-size: 0.9rem; }
+
+        /* Real-time Summary Card (For Drivers) */
+        .status-card {
+            background: white;
+            margin: -20px 20px 20px 20px;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+        .status-card h2 { margin: 0; font-size: 2.5rem; color: #10b981; font-weight: 800; }
+        .status-card p { margin: 5px 0 0 0; color: #64748b; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;}
+
+        /* Parking Lot Map Area */
+        .map-section { padding: 0 20px 20px 20px; }
+        .map-section h3 { font-size: 1.1rem; color: #334155; margin-bottom: 15px; }
+        
+        .zone { background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .zone-title { font-weight: 800; color: #475569; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        
+        .spot-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+        .spot { 
+            padding: 15px 0; 
+            text-align: center; 
+            border-radius: 8px; 
+            font-size: 0.85rem; 
+            font-weight: 700; 
+            color: white;
+        }
+        .empty { background-color: #10b981; border: 2px solid #059669; }
+        .occupied { background-color: #ef4444; border: 2px solid #dc2626; opacity: 0.5; } /* Dim occupied spots for better visibility of empty ones */
+
+        /* Bottom Navigation Bar */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 414px;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            border-top: 1px solid #e2e8f0;
+        }
+        .nav-item { text-align: center; color: #64748b; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+        .nav-item.active { color: #3b82f6; }
+        .nav-icon { font-size: 1.5rem; display: block; margin-bottom: 3px; }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-container">
+        <div class="app-header">
+            <h1>ASU Parking</h1>
+            <p>Find your spot instantly</p>
+            <br>
+        </div>
+
+        <div class="status-card">
+            <h2>11</h2>
+            <p>Spots Available Now</p>
+        </div>
+
+        <div class="map-section">
+            <h3>Live Parking Map</h3>
+            
+            <div class="zone">
+                <div class="zone-title"><span>Zone A</span> <span style="color:#10b981;">3 Left</span></div>
+                <div class="spot-grid">
+                    <div class="spot empty">A1</div>
+                    <div class="spot occupied">A2</div>
+                    <div class="spot empty">A3</div>
+                    <div class="spot empty">A4</div>
+                    <div class="spot occupied">A5</div>
+                </div>
+            </div>
+
+            <div class="zone">
+                <div class="zone-title"><span>Zone B</span> <span style="color:#10b981;">4 Left</span></div>
+                <div class="spot-grid">
+                    <div class="spot empty">B1</div>
+                    <div class="spot empty">B2</div>
+                    <div class="spot occupied">B3</div>
+                    <div class="spot empty">B4</div>
+                    <div class="spot empty">B5</div>
+                </div>
+            </div>
+            
+            <div class="zone">
+                <div class="zone-title"><span>Zone C</span> <span style="color:#10b981;">3 Left</span></div>
+                <div class="spot-grid">
+                    <div class="spot occupied">C1</div>
+                    <div class="spot empty">C2</div>
+                    <div class="spot empty">C3</div>
+                    <div class="spot occupied">C4</div>
+                    <div class="spot empty">C5</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active"><span class="nav-icon">📍</span>Map</div>
+            <div class="nav-item"><span class="nav-icon">💳</span>Pay</div>
+            <div class="nav-item"><span class="nav-icon">👤</span>Profile</div>
+        </div>
+    </div>
+
+</body>
+</html>
