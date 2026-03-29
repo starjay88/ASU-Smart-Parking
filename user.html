@@ -61,16 +61,33 @@
 
         /* --- LOGIN & AUTH VIEW STYLES --- */
         .auth-container { padding: 40px 20px; text-align: center; margin-top: 20px;}
-        .auth-logo { font-size: 4rem; margin-bottom: 10px; animation: bounce 2s infinite ease-in-out;}
+        /* Styled Brand Logo Text */
+        .auth-brand-logo { 
+            display: inline-flex; 
+            align-items: center; 
+            background: #0f172a; 
+            color: white; 
+            padding: 8px 16px; 
+            border-radius: 12px; 
+            font-size: 1rem; 
+            font-weight: 800; 
+            margin-bottom: 15px; 
+            letter-spacing: 1px; 
+            box-shadow: 0 4px 10px rgba(15,23,42,0.2);
+            animation: bounce 2s infinite ease-in-out;
+        }
+        .auth-brand-logo span { color: #3b82f6; margin-right: 5px;}
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         .auth-title { font-size: 1.8rem; color: #0f172a; font-weight: 800; margin-bottom: 5px; }
         .auth-subtitle { color: #64748b; font-size: 0.95rem; margin-bottom: 35px; font-weight: 600;}
-        .auth-form { display: flex; flex-direction: column; gap: 15px; }
+        .auth-form { display: flex; flex-direction: column; gap: 12px; }
         .input-field { padding: 16px; border-radius: 12px; border: 1px solid #cbd5e1; font-size: 1rem; font-family: 'Plus Jakarta Sans', sans-serif; transition: 0.2s;}
         .input-field:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
         .auth-btn { background: #0f172a; color: white; border: none; padding: 18px; border-radius: 12px; font-size: 1.1rem; font-weight: 800; margin-top: 10px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(15,23,42,0.2);}
         .auth-btn:active { transform: scale(0.98); }
-        .auth-switch { margin-top: 25px; color: #64748b; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
+        /* Link styling for switch & forgot password */
+        .auth-link { margin-top: 10px; color: #3b82f6; font-size: 0.9rem; font-weight: 700; cursor: pointer; text-decoration: underline;}
+        .auth-switch { margin-top: 30px; color: #64748b; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
         .auth-switch span { color: #3b82f6; text-decoration: underline;}
 
         /* --- MAP VIEW STYLES --- */
@@ -146,15 +163,19 @@
 
         <div id="view-login" class="view-section active">
             <div class="auth-container">
-                <div class="auth-logo">🅿️</div>
+                <div class="auth-brand-logo"><span>ASU</span> Smart Parking</div>
                 <h2 class="auth-title" id="auth-title">Welcome Back</h2>
-                <p class="auth-subtitle" id="auth-subtitle">Log in to find your parking spot</p>
+                <p class="auth-subtitle" id="auth-subtitle">Log in to find your parking spot instantly</p>
                 
                 <form class="auth-form" onsubmit="handleAuth(event)">
                     <input type="text" id="auth-name" class="input-field" placeholder="Full Name" style="display: none;">
                     
                     <input type="email" id="auth-email" class="input-field" placeholder="ASU Email (@asu.edu)" required>
                     <input type="password" id="auth-password" class="input-field" placeholder="Password" required>
+                    
+                    <input type="password" id="auth-confirm-password" class="input-field" placeholder="Confirm Password" style="display: none;">
+                    
+                    <div class="auth-link" id="auth-forget-link" onclick="resetPassword()" style="margin-top:-5px;">Forgot Password?</div>
                     
                     <button type="submit" class="auth-btn" id="auth-btn">Log In</button>
                 </form>
@@ -248,19 +269,40 @@
         function toggleAuthMode() {
             isLoginMode = !isLoginMode;
             document.getElementById('auth-title').innerText = isLoginMode ? 'Welcome Back' : 'Create Account';
-            document.getElementById('auth-subtitle').innerText = isLoginMode ? 'Log in to find your parking spot' : 'Join ASU Smart Parking today';
+            document.getElementById('auth-subtitle').innerText = isLoginMode ? 'Log in to find your parking spot instantly' : 'Sign up to access real-time ASU parking';
             document.getElementById('auth-btn').innerText = isLoginMode ? 'Log In' : 'Sign Up';
             document.getElementById('auth-switch-text').innerHTML = isLoginMode ? "Don't have an account? <span>Sign Up</span>" : "Already have an account? <span>Log In</span>";
             
-            // Show/hide name field based on mode
+            // Show/hide Name & Confirm Password fields based on mode
             document.getElementById('auth-name').style.display = isLoginMode ? 'none' : 'block';
-            if(!isLoginMode) document.getElementById('auth-name').required = true;
-            else document.getElementById('auth-name').required = false;
+            document.getElementById('auth-confirm-password').style.display = isLoginMode ? 'none' : 'block';
+            
+            // Show/hide Forget Password link (Login mode only)
+            document.getElementById('auth-forget-link').style.display = isLoginMode ? 'block' : 'none';
+
+            // Set required attributes based on mode
+            if(!isLoginMode) {
+                document.getElementById('auth-name').required = true;
+                document.getElementById('auth-confirm-password').required = true;
+            } else {
+                document.getElementById('auth-name').required = false;
+                document.getElementById('auth-confirm-password').required = false;
+            }
         }
 
         function handleAuth(event) {
             event.preventDefault(); // Prevent page refresh on form submit
             
+            // Password match check (Signup mode only)
+            if (!isLoginMode) {
+                const password = document.getElementById('auth-password').value;
+                const confirmPassword = document.getElementById('auth-confirm-password').value;
+                if (password !== confirmPassword) {
+                    alert("❌ Passwords do not match. Please try again.");
+                    return; // Prevent simulation
+                }
+            }
+
             // Get user input data to display later
             const email = document.getElementById('auth-email').value;
             let name = document.getElementById('auth-name').value;
@@ -279,6 +321,11 @@
             switchView('map');
         }
 
+        // Mock Password Reset Logic
+        function resetPassword() {
+            alert('⚙️ Password reset instructions have been sent to your registered ASU email address.');
+        }
+
         function logout() {
             // Hide App Elements, Show Login
             document.getElementById('main-header').style.display = 'none';
@@ -290,6 +337,10 @@
             // Clear inputs
             document.getElementById('auth-email').value = '';
             document.getElementById('auth-password').value = '';
+            document.getElementById('auth-confirm-password').value = '';
+            
+            // Make sure login mode is on
+            if(!isLoginMode) toggleAuthMode();
             
             document.getElementById('view-login').classList.add('active');
         }
