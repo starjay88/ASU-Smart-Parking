@@ -14,7 +14,7 @@
         .app-header h1 { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: 0.5px; }
         .user-badge { display: inline-block; background-color: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; margin-top: 8px; letter-spacing: 1px; }
 
-        /* Toast Notification (No more ugly alerts) */
+        /* Toast Notification */
         #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 12px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 100px; transform: translateX(-50%); font-size: 0.9rem; font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: 0.3s; }
         #toast.show { visibility: visible; bottom: 110px; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
         @keyframes fadein { from {bottom: 80px; opacity: 0;} to {bottom: 110px; opacity: 1;} }
@@ -53,7 +53,7 @@
         .spot { padding: 12px 0; text-align: center; border-radius: 6px; font-size: 0.8rem; font-weight: 800; color: white; border: 1.5px solid rgba(255,255,255,0.15); transition: all 0.2s; cursor: pointer; }
         .empty { background-color: #10b981; border-color: #34d399; }
         .occupied { background-color: #ef4444; border-color: #f87171; opacity: 0.4; }
-        .my-spot { background-color: #f59e0b; border-color: #fbbf24; opacity: 1; box-shadow: 0 0 10px rgba(245,158,11,0.5);} /* User's booked spot */
+        .my-spot { background-color: #f59e0b; border-color: #fbbf24; opacity: 1; box-shadow: 0 0 10px rgba(245,158,11,0.5);} 
         .driving-lane { height: 20px; background: #4b5563; border-radius: 4px; margin: 12px 0; position: relative; }
         .driving-lane::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: repeating-linear-gradient(90deg, #fbbf24 0, #fbbf24 10px, transparent 10px, transparent 20px); transform: translateY(-50%); }
 
@@ -149,7 +149,7 @@
                         <div class="detail-row"><span>Vehicle</span> <span>ASU-9921</span></div>
                         <div class="detail-row"><span>Spot</span> <span id="booked-spot-id">--</span></div>
                         <div class="detail-row"><span>Duration</span> <span id="dynamic-duration">00m 00s</span></div>
-                        <div class="detail-row"><span>Rate</span> <span>$4.00 / hr</span></div>
+                        <div class="detail-row"><span>Rate</span> <span>$0.01 / 10 sec</span></div>
                     </div>
 
                     <button class="pay-btn" id="checkout-btn" onclick="processPayment()">Pay Now</button>
@@ -208,10 +208,10 @@
         const zones = ['A', 'B', 'C', 'D'];
         
         let currentUser = null;
-        let activeSession = null; // { spotId: 'A1', startTime: timestamp }
+        let activeSession = null; 
         let timerInterval = null;
 
-        // Initialize App (Check LocalStorage)
+        // Initialize App
         function initApp() {
             const savedSpots = localStorage.getItem('asuSpots');
             spots = savedSpots ? JSON.parse(savedSpots) : defaultSpots;
@@ -225,7 +225,7 @@
                 currentUser = JSON.parse(savedUser);
                 loginSuccessUI(currentUser.name, currentUser.email);
             } else {
-                renderMap(); // Just render in background
+                renderMap(); 
             }
         }
 
@@ -252,7 +252,6 @@
             const email = document.getElementById('auth-email').value;
             let name = document.getElementById('auth-name').value || email.split('@')[0];
             
-            // Save to LocalStorage to prevent logout on refresh
             currentUser = { name, email };
             localStorage.setItem('asuUser', JSON.stringify(currentUser));
             
@@ -272,12 +271,19 @@
 
         function logout() {
             localStorage.removeItem('asuUser');
-            localStorage.removeItem('asuSession'); // Clear active parking on logout
+            localStorage.removeItem('asuSession'); 
             activeSession = null;
             currentUser = null;
             
             document.getElementById('main-header').style.display = 'none';
             document.getElementById('main-nav').style.display = 'none';
+            
+            if(!isLoginMode) toggleAuthMode(); // Reset to login screen if it was on signup
+            
+            document.getElementById('auth-email').value = '';
+            document.getElementById('auth-password').value = '';
+            document.getElementById('auth-confirm-password').value = '';
+            
             switchView('login');
             showToast("Logged out successfully");
         }
@@ -304,7 +310,6 @@
                     if(spot.status === 'empty') emptyCount++;
                     const div = document.createElement('div');
                     
-                    // Highlight if it's the user's currently booked spot
                     if(activeSession && activeSession.spotId === spot.id) {
                         div.className = 'spot my-spot';
                         div.innerText = 'YOURS';
@@ -324,7 +329,7 @@
                 }
             });
             document.getElementById('availableCount').innerText = emptyCount;
-            localStorage.setItem('asuSpots', JSON.stringify(spots)); // Save map state
+            localStorage.setItem('asuSpots', JSON.stringify(spots)); 
         }
 
         function handleSpotClick(spot) {
@@ -341,7 +346,6 @@
                 return;
             }
             
-            // Book the spot
             spot.status = 'occupied';
             activeSession = { spotId: spot.id, startTime: Date.now() };
             localStorage.setItem('asuSession', JSON.stringify(activeSession));
@@ -352,21 +356,28 @@
 
         // --- SPA & Dynamic Timer Logic ---
         function switchView(viewName) {
+            // 1. Hide all views and nav items
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             
+            // 2. Show the target view
+            const targetView = document.getElementById(`view-${viewName}`);
+            if(targetView) targetView.classList.add('active');
+
+            // 3. Highlight the target nav item (except for login screen)
             if(viewName !== 'login') {
-                document.getElementById(`view-${viewName}`).classList.add('active');
-                document.getElementById(`nav-${viewName}`).classList.add('active');
+                const targetNav = document.getElementById(`nav-${viewName}`);
+                if(targetNav) targetNav.classList.add('active');
             }
 
+            // 4. Update Header and Timers
             const badge = document.getElementById('header-badge');
             if(viewName === 'map') badge.innerText = 'DRIVER MODE';
             if(viewName === 'pay') {
                 badge.innerText = 'CHECKOUT';
-                startDynamicTimer(); // Start real-time clock
+                startDynamicTimer(); 
             } else {
-                clearInterval(timerInterval); // Stop clock if not in Pay view to save memory
+                clearInterval(timerInterval); 
             }
             if(viewName === 'profile') badge.innerText = 'SETTINGS';
         }
@@ -386,7 +397,6 @@
             emptyCard.style.display = 'none';
             document.getElementById('booked-spot-id').innerText = `Zone ${activeSession.spotId.charAt(0)} - ${activeSession.spotId}`;
             
-            // Update immediately, then every second
             updateTimerDisplay();
             timerInterval = setInterval(updateTimerDisplay, 1000);
         }
@@ -399,8 +409,8 @@
             const mins = Math.floor(totalSeconds / 60);
             const secs = totalSeconds % 60;
             
-            // Demo Logic: To make presentation exciting, base fee is $4.00, goes up 5 cents every real-time second!
-            const fee = 4.00 + (totalSeconds * 0.05);
+            // Fee starts at $0.00 and increases by $0.01 every 10 real-time seconds
+            const fee = 0.00 + (Math.floor(totalSeconds / 10) * 0.01);
             
             document.getElementById('dynamic-duration').innerText = `${mins.toString().padStart(2, '0')}m ${secs.toString().padStart(2, '0')}s`;
             document.getElementById('dynamic-fee').innerText = `$${fee.toFixed(2)}`;
@@ -415,7 +425,6 @@
                 clearInterval(timerInterval);
                 showToast("💳 Payment Successful! Gate opening...", true);
                 
-                // Free the spot
                 const mySpot = spots.find(s => s.id === activeSession.spotId);
                 if(mySpot) mySpot.status = 'empty';
                 
