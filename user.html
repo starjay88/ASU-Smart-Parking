@@ -6,76 +6,28 @@
     <title>ASU Smart Parking | Driver App</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        body { 
-            font-family: 'Plus Jakarta Sans', sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background-color: #e2e8f0; 
-            display: flex;
-            justify-content: center;
-        }
-        
-        .mobile-container {
-            width: 100%;
-            max-width: 414px; 
-            background-color: #f1f5f9;
-            min-height: 100vh;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            position: relative;
-            padding-bottom: 80px; 
-            overflow-x: hidden;
-        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; padding: 0; background-color: #e2e8f0; display: flex; justify-content: center; }
+        .mobile-container { width: 100%; max-width: 414px; background-color: #f1f5f9; min-height: 100vh; box-shadow: 0 0 20px rgba(0,0,0,0.1); position: relative; padding-bottom: 80px; overflow-x: hidden; }
 
         /* App Header */
-        .app-header {
-            background: #0f172a; 
-            color: white;
-            padding: 25px 20px 20px 20px;
-            text-align: center;
-            border-bottom-left-radius: 20px;
-            border-bottom-right-radius: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            position: relative;
-            z-index: 20;
-        }
+        .app-header { background: #0f172a; color: white; padding: 25px 20px 20px 20px; text-align: center; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: relative; z-index: 20; }
         .app-header h1 { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: 0.5px; }
-        .user-badge { 
-            display: inline-block; 
-            background-color: #10b981; 
-            color: white; 
-            padding: 4px 12px; 
-            border-radius: 20px; 
-            font-size: 0.75rem; 
-            font-weight: 800; 
-            margin-top: 8px;
-            letter-spacing: 1px;
-        }
+        .user-badge { display: inline-block; background-color: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; margin-top: 8px; letter-spacing: 1px; }
 
-        /* --- View Sections (SPA Logic) --- */
+        /* Toast Notification (No more ugly alerts) */
+        #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 12px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 100px; transform: translateX(-50%); font-size: 0.9rem; font-weight: 700; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: 0.3s; }
+        #toast.show { visibility: visible; bottom: 110px; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        @keyframes fadein { from {bottom: 80px; opacity: 0;} to {bottom: 110px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 110px; opacity: 1;} to {bottom: 80px; opacity: 0;} }
+
+        /* View Sections */
         .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
         .view-section.active { display: block; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- LOGIN & AUTH VIEW STYLES --- */
+        /* Auth View */
         .auth-container { padding: 40px 20px; text-align: center; margin-top: 20px;}
-        /* Styled Brand Logo Text */
-        .auth-brand-logo { 
-            display: inline-flex; 
-            align-items: center; 
-            background: #0f172a; 
-            color: white; 
-            padding: 8px 16px; 
-            border-radius: 12px; 
-            font-size: 1rem; 
-            font-weight: 800; 
-            margin-bottom: 15px; 
-            letter-spacing: 1px; 
-            box-shadow: 0 4px 10px rgba(15,23,42,0.2);
-            animation: bounce 2s infinite ease-in-out;
-        }
+        .auth-brand-logo { display: inline-flex; align-items: center; background: #0f172a; color: white; padding: 8px 16px; border-radius: 12px; font-size: 1rem; font-weight: 800; margin-bottom: 15px; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(15,23,42,0.2); animation: bounce 2s infinite ease-in-out; }
         .auth-brand-logo span { color: #3b82f6; margin-right: 5px;}
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         .auth-title { font-size: 1.8rem; color: #0f172a; font-weight: 800; margin-bottom: 5px; }
@@ -85,12 +37,11 @@
         .input-field:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
         .auth-btn { background: #0f172a; color: white; border: none; padding: 18px; border-radius: 12px; font-size: 1.1rem; font-weight: 800; margin-top: 10px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(15,23,42,0.2);}
         .auth-btn:active { transform: scale(0.98); }
-        /* Link styling for switch & forgot password */
         .auth-link { margin-top: 10px; color: #3b82f6; font-size: 0.9rem; font-weight: 700; cursor: pointer; text-decoration: underline;}
         .auth-switch { margin-top: 30px; color: #64748b; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
         .auth-switch span { color: #3b82f6; text-decoration: underline;}
 
-        /* --- MAP VIEW STYLES --- */
+        /* Map View */
         .status-card { background: white; margin: -15px 20px 20px 20px; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); text-align: center; position: relative; z-index: 10; }
         .status-card h2 { margin: 0; font-size: 3rem; color: #10b981; font-weight: 800; line-height: 1; }
         .status-card p { margin: 5px 0 0 0; color: #64748b; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;}
@@ -102,21 +53,23 @@
         .spot { padding: 12px 0; text-align: center; border-radius: 6px; font-size: 0.8rem; font-weight: 800; color: white; border: 1.5px solid rgba(255,255,255,0.15); transition: all 0.2s; cursor: pointer; }
         .empty { background-color: #10b981; border-color: #34d399; }
         .occupied { background-color: #ef4444; border-color: #f87171; opacity: 0.4; }
+        .my-spot { background-color: #f59e0b; border-color: #fbbf24; opacity: 1; box-shadow: 0 0 10px rgba(245,158,11,0.5);} /* User's booked spot */
         .driving-lane { height: 20px; background: #4b5563; border-radius: 4px; margin: 12px 0; position: relative; }
         .driving-lane::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: repeating-linear-gradient(90deg, #fbbf24 0, #fbbf24 10px, transparent 10px, transparent 20px); transform: translateY(-50%); }
 
-        /* --- PAY VIEW STYLES --- */
+        /* Pay View */
         .pay-section { padding: 20px; }
         .receipt-card { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; border-top: 6px solid #3b82f6; }
         .receipt-card h3 { color: #64748b; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 0; }
-        .amount { font-size: 3.5rem; font-weight: 800; color: #0f172a; margin: 10px 0; }
+        .amount { font-size: 3.5rem; font-weight: 800; color: #0f172a; margin: 10px 0; font-variant-numeric: tabular-nums; }
         .receipt-details { margin-top: 20px; text-align: left; border-top: 1px dashed #cbd5e1; padding-top: 20px; }
         .detail-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; font-weight: 600; color: #475569; }
         .detail-row span:last-child { color: #0f172a; font-weight: 800; }
         .pay-btn { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; width: 100%; padding: 16px; border-radius: 12px; font-size: 1.1rem; font-weight: 800; margin-top: 25px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
         .pay-btn:active { transform: scale(0.98); }
+        .pay-btn:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; }
         
-        /* --- PROFILE VIEW STYLES --- */
+        /* Profile View */
         .profile-section { padding: 20px; }
         .user-info { text-align: center; margin-bottom: 30px; }
         .avatar { width: 80px; height: 80px; background: #3b82f6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 15px auto; font-weight: 800; box-shadow: 0 4px 10px rgba(59,130,246,0.3);}
@@ -132,20 +85,8 @@
         input:checked + .slider { background-color: #10b981; }
         input:checked + .slider:before { transform: translateX(20px); }
 
-        /* --- Bottom Navigation --- */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            max-width: 414px;
-            background: white;
-            display: flex;
-            justify-content: space-around;
-            padding: 15px 0;
-            border-top: 1px solid #e2e8f0;
-            box-shadow: 0 -4px 10px rgba(0,0,0,0.03);
-            z-index: 100;
-        }
+        /* Bottom Navigation */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 414px; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #e2e8f0; box-shadow: 0 -4px 10px rgba(0,0,0,0.03); z-index: 100; }
         .nav-item { text-align: center; color: #94a3b8; font-size: 0.75rem; font-weight: 800; cursor: pointer; transition: 0.2s; width: 33%;}
         .nav-item.active { color: #3b82f6; transform: translateY(-2px);}
         .nav-icon { font-size: 1.4rem; display: block; margin-bottom: 4px; filter: grayscale(100%); opacity: 0.6; transition: 0.2s;}
@@ -153,6 +94,8 @@
     </style>
 </head>
 <body>
+
+    <div id="toast">Message here</div>
 
     <div class="mobile-container">
         
@@ -169,10 +112,8 @@
                 
                 <form class="auth-form" onsubmit="handleAuth(event)">
                     <input type="text" id="auth-name" class="input-field" placeholder="Full Name" style="display: none;">
-                    
                     <input type="email" id="auth-email" class="input-field" placeholder="ASU Email (@asu.edu)" required>
                     <input type="password" id="auth-password" class="input-field" placeholder="Password" required>
-                    
                     <input type="password" id="auth-confirm-password" class="input-field" placeholder="Confirm Password" style="display: none;">
                     
                     <div class="auth-link" id="auth-forget-link" onclick="resetPassword()" style="margin-top:-5px;">Forgot Password?</div>
@@ -193,26 +134,31 @@
             </div>
             <div class="map-section">
                 <h3>Live Floor Map</h3>
-                <div class="parking-lot-wrapper" id="parkingLot">
-                    </div>
+                <div class="parking-lot-wrapper" id="parkingLot"></div>
             </div>
         </div>
 
         <div id="view-pay" class="view-section">
             <div class="pay-section">
-                <div class="receipt-card">
+                <div class="receipt-card" id="receipt-active" style="display: none;">
                     <h3>Current Session</h3>
-                    <div class="amount">$8.00</div>
-                    <div style="color: #10b981; font-weight: 700; font-size: 0.9rem;">🟢 Active Parking</div>
+                    <div class="amount" id="dynamic-fee">$0.00</div>
+                    <div style="color: #10b981; font-weight: 700; font-size: 0.9rem;" id="session-status">🟢 Active Parking</div>
                     
                     <div class="receipt-details">
                         <div class="detail-row"><span>Vehicle</span> <span>ASU-9921</span></div>
-                        <div class="detail-row"><span>Spot</span> <span>Zone A - A2</span></div>
-                        <div class="detail-row"><span>Duration</span> <span>2 hrs 15 mins</span></div>
+                        <div class="detail-row"><span>Spot</span> <span id="booked-spot-id">--</span></div>
+                        <div class="detail-row"><span>Duration</span> <span id="dynamic-duration">00m 00s</span></div>
                         <div class="detail-row"><span>Rate</span> <span>$4.00 / hr</span></div>
                     </div>
 
-                    <button class="pay-btn" onclick="processPayment()">Pay Now</button>
+                    <button class="pay-btn" id="checkout-btn" onclick="processPayment()">Pay Now</button>
+                </div>
+
+                <div class="receipt-card" id="receipt-empty">
+                    <div style="font-size: 3rem; margin-bottom:10px;">🚘</div>
+                    <h3>No Active Parking</h3>
+                    <p style="color: #64748b; font-size:0.9rem;">Book a spot from the Map to start your session.</p>
                 </div>
             </div>
         </div>
@@ -226,135 +172,119 @@
                 </div>
 
                 <div class="settings-card">
-                    <div class="setting-item">
-                        <span>Registered Vehicle</span>
-                        <span style="color:#3b82f6;">ASU-9921</span>
-                    </div>
-                    <div class="setting-item">
-                        <span>Payment Method</span>
-                        <span>Visa ending in 4242</span>
-                    </div>
-                    <div class="setting-item">
-                        <span>Push Notifications</span>
-                        <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
-                    </div>
-                    <div class="setting-item">
-                        <span>Auto-Pay on Exit</span>
-                        <label class="switch"><input type="checkbox"><span class="slider"></span></label>
-                    </div>
-                    <div class="setting-item" style="cursor: pointer; color: #ef4444;" onclick="logout()">
-                        <span style="font-weight: 800;">Log Out</span>
-                    </div>
+                    <div class="setting-item"><span>Registered Vehicle</span><span style="color:#3b82f6;">ASU-9921</span></div>
+                    <div class="setting-item"><span>Payment Method</span><span>Visa ending in 4242</span></div>
+                    <div class="setting-item"><span>Push Notifications</span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+                    <div class="setting-item" style="cursor: pointer; color: #ef4444;" onclick="logout()"><span style="font-weight: 800;">Log Out</span></div>
                 </div>
             </div>
         </div>
 
         <div class="bottom-nav" id="main-nav" style="display: none;">
-            <div class="nav-item active" id="nav-map" onclick="switchView('map')">
-                <span class="nav-icon">📍</span>Map
-            </div>
-            <div class="nav-item" id="nav-pay" onclick="switchView('pay')">
-                <span class="nav-icon">💳</span>Pay
-            </div>
-            <div class="nav-item" id="nav-profile" onclick="switchView('profile')">
-                <span class="nav-icon">👤</span>Profile
-            </div>
+            <div class="nav-item active" id="nav-map" onclick="switchView('map')"><span class="nav-icon">📍</span>Map</div>
+            <div class="nav-item" id="nav-pay" onclick="switchView('pay')"><span class="nav-icon">💳</span>Pay</div>
+            <div class="nav-item" id="nav-profile" onclick="switchView('profile')"><span class="nav-icon">👤</span>Profile</div>
         </div>
     </div>
 
     <script>
-        // --- 1. Authentication (Login/Signup) Logic ---
-        let isLoginMode = true;
+        // --- Custom Toast UI ---
+        function showToast(message, isSuccess = true) {
+            const toast = document.getElementById("toast");
+            toast.innerText = message;
+            toast.style.backgroundColor = isSuccess ? '#10b981' : '#ef4444';
+            toast.className = "show";
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
 
+        // --- Data & LocalStorage Logic ---
+        let spots = [];
+        const defaultSpots = [
+            { id: 'A1', status: 'empty' }, { id: 'A2', status: 'occupied' }, { id: 'A3', status: 'empty' }, { id: 'A4', status: 'empty' }, { id: 'A5', status: 'occupied' },
+            { id: 'B1', status: 'empty' }, { id: 'B2', status: 'empty' }, { id: 'B3', status: 'occupied' }, { id: 'B4', status: 'empty' }, { id: 'B5', status: 'empty' },
+            { id: 'C1', status: 'occupied' }, { id: 'C2', status: 'empty' }, { id: 'C3', status: 'empty' }, { id: 'C4', status: 'occupied' }, { id: 'C5', status: 'empty' },
+            { id: 'D1', status: 'empty' }, { id: 'D2', status: 'occupied' }, { id: 'D3', status: 'empty' }, { id: 'D4', status: 'empty' }, { id: 'D5', status: 'occupied' }
+        ];
+        const zones = ['A', 'B', 'C', 'D'];
+        
+        let currentUser = null;
+        let activeSession = null; // { spotId: 'A1', startTime: timestamp }
+        let timerInterval = null;
+
+        // Initialize App (Check LocalStorage)
+        function initApp() {
+            const savedSpots = localStorage.getItem('asuSpots');
+            spots = savedSpots ? JSON.parse(savedSpots) : defaultSpots;
+
+            const savedUser = localStorage.getItem('asuUser');
+            const savedSession = localStorage.getItem('asuSession');
+            
+            if(savedSession) activeSession = JSON.parse(savedSession);
+
+            if(savedUser) {
+                currentUser = JSON.parse(savedUser);
+                loginSuccessUI(currentUser.name, currentUser.email);
+            } else {
+                renderMap(); // Just render in background
+            }
+        }
+
+        // --- Auth Logic ---
+        let isLoginMode = true;
         function toggleAuthMode() {
             isLoginMode = !isLoginMode;
             document.getElementById('auth-title').innerText = isLoginMode ? 'Welcome Back' : 'Create Account';
             document.getElementById('auth-subtitle').innerText = isLoginMode ? 'Log in to find your parking spot instantly' : 'Sign up to access real-time ASU parking';
             document.getElementById('auth-btn').innerText = isLoginMode ? 'Log In' : 'Sign Up';
             document.getElementById('auth-switch-text').innerHTML = isLoginMode ? "Don't have an account? <span>Sign Up</span>" : "Already have an account? <span>Log In</span>";
-            
-            // Show/hide Name & Confirm Password fields based on mode
             document.getElementById('auth-name').style.display = isLoginMode ? 'none' : 'block';
             document.getElementById('auth-confirm-password').style.display = isLoginMode ? 'none' : 'block';
-            
-            // Show/hide Forget Password link (Login mode only)
             document.getElementById('auth-forget-link').style.display = isLoginMode ? 'block' : 'none';
-
-            // Set required attributes based on mode
-            if(!isLoginMode) {
-                document.getElementById('auth-name').required = true;
-                document.getElementById('auth-confirm-password').required = true;
-            } else {
-                document.getElementById('auth-name').required = false;
-                document.getElementById('auth-confirm-password').required = false;
-            }
         }
 
         function handleAuth(event) {
-            event.preventDefault(); // Prevent page refresh on form submit
-            
-            // Password match check (Signup mode only)
+            event.preventDefault();
             if (!isLoginMode) {
-                const password = document.getElementById('auth-password').value;
-                const confirmPassword = document.getElementById('auth-confirm-password').value;
-                if (password !== confirmPassword) {
-                    alert("❌ Passwords do not match. Please try again.");
-                    return; // Prevent simulation
+                if (document.getElementById('auth-password').value !== document.getElementById('auth-confirm-password').value) {
+                    showToast("❌ Passwords do not match", false); return;
                 }
             }
-
-            // Get user input data to display later
             const email = document.getElementById('auth-email').value;
-            let name = document.getElementById('auth-name').value;
-            if(!name) name = email.split('@')[0]; // Fallback to email prefix if name is empty
+            let name = document.getElementById('auth-name').value || email.split('@')[0];
+            
+            // Save to LocalStorage to prevent logout on refresh
+            currentUser = { name, email };
+            localStorage.setItem('asuUser', JSON.stringify(currentUser));
+            
+            showToast("✅ Login Successful!");
+            loginSuccessUI(name, email);
+        }
 
-            // Update Profile View with inputted data
-            document.getElementById('profile-name').innerText = isLoginMode ? name : name;
+        function loginSuccessUI(name, email) {
+            document.getElementById('profile-name').innerText = name;
             document.getElementById('profile-email').innerText = email;
-
-            // Hide Login, Show Main App Elements
             document.getElementById('view-login').classList.remove('active');
             document.getElementById('main-header').style.display = 'block';
             document.getElementById('main-nav').style.display = 'flex';
-            
-            // Show Map View
             switchView('map');
-        }
-
-        // Mock Password Reset Logic
-        function resetPassword() {
-            alert('⚙️ Password reset instructions have been sent to your registered ASU email address.');
+            renderMap();
         }
 
         function logout() {
-            // Hide App Elements, Show Login
+            localStorage.removeItem('asuUser');
+            localStorage.removeItem('asuSession'); // Clear active parking on logout
+            activeSession = null;
+            currentUser = null;
+            
             document.getElementById('main-header').style.display = 'none';
             document.getElementById('main-nav').style.display = 'none';
-            document.getElementById('view-map').classList.remove('active');
-            document.getElementById('view-pay').classList.remove('active');
-            document.getElementById('view-profile').classList.remove('active');
-            
-            // Clear inputs
-            document.getElementById('auth-email').value = '';
-            document.getElementById('auth-password').value = '';
-            document.getElementById('auth-confirm-password').value = '';
-            
-            // Make sure login mode is on
-            if(!isLoginMode) toggleAuthMode();
-            
-            document.getElementById('view-login').classList.add('active');
+            switchView('login');
+            showToast("Logged out successfully");
         }
 
-        // --- 2. Map Data & Logic ---
-        let spots = [
-            { id: 'A1', status: 'empty' }, { id: 'A2', status: 'occupied' }, { id: 'A3', status: 'empty' }, { id: 'A4', status: 'empty' }, { id: 'A5', status: 'occupied' },
-            { id: 'B1', status: 'empty' }, { id: 'B2', status: 'empty' }, { id: 'B3', status: 'occupied' }, { id: 'B4', status: 'empty' }, { id: 'B5', status: 'empty' },
-            { id: 'C1', status: 'occupied' }, { id: 'C2', status: 'empty' }, { id: 'C3', status: 'empty' }, { id: 'C4', status: 'occupied' }, { id: 'C5', status: 'empty' },
-            { id: 'D1', status: 'empty' }, { id: 'D2', status: 'occupied' }, { id: 'D3', status: 'empty' }, { id: 'D4', status: 'empty' }, { id: 'D5', status: 'occupied' }
-        ];
+        function resetPassword() { showToast("📧 Reset link sent to your email!"); }
 
-        const zones = ['A', 'B', 'C', 'D'];
-
+        // --- Map Logic ---
         function renderMap() {
             const lot = document.getElementById('parkingLot');
             lot.innerHTML = '';
@@ -373,22 +303,20 @@
                 zoneSpots.forEach(spot => {
                     if(spot.status === 'empty') emptyCount++;
                     const div = document.createElement('div');
-                    div.className = `spot ${spot.status}`;
-                    div.innerText = spot.id;
                     
-                    div.onclick = () => {
-                        if(spot.status === 'empty') {
-                            alert(`Spot ${spot.id} selected! Proceed to parking.`);
-                            spot.status = 'occupied';
-                        } else {
-                            spot.status = 'empty';
-                        }
-                        renderMap();
-                    };
+                    // Highlight if it's the user's currently booked spot
+                    if(activeSession && activeSession.spotId === spot.id) {
+                        div.className = 'spot my-spot';
+                        div.innerText = 'YOURS';
+                    } else {
+                        div.className = `spot ${spot.status}`;
+                        div.innerText = spot.id;
+                    }
+                    
+                    div.onclick = () => handleSpotClick(spot);
                     row.appendChild(div);
                 });
                 lot.appendChild(row);
-
                 if (index === 1) {
                     const lane = document.createElement('div');
                     lane.className = 'driving-lane';
@@ -396,45 +324,116 @@
                 }
             });
             document.getElementById('availableCount').innerText = emptyCount;
+            localStorage.setItem('asuSpots', JSON.stringify(spots)); // Save map state
         }
 
-        // --- 3. Single Page Application (SPA) Logic ---
-        function switchView(viewName) {
-            document.getElementById('view-map').classList.remove('active');
-            document.getElementById('view-pay').classList.remove('active');
-            document.getElementById('view-profile').classList.remove('active');
+        function handleSpotClick(spot) {
+            if(activeSession && activeSession.spotId === spot.id) {
+                showToast("Navigate to the Pay tab to checkout.", false);
+                return;
+            }
+            if(activeSession) {
+                showToast("You already have an active parking session!", false);
+                return;
+            }
+            if(spot.status === 'occupied') {
+                showToast("Spot is already taken.", false);
+                return;
+            }
             
-            document.getElementById('nav-map').classList.remove('active');
-            document.getElementById('nav-pay').classList.remove('active');
-            document.getElementById('nav-profile').classList.remove('active');
+            // Book the spot
+            spot.status = 'occupied';
+            activeSession = { spotId: spot.id, startTime: Date.now() };
+            localStorage.setItem('asuSession', JSON.stringify(activeSession));
+            
+            showToast(`✅ Spot ${spot.id} Reserved! Timer started.`);
+            renderMap();
+        }
 
-            document.getElementById(`view-${viewName}`).classList.add('active');
-            document.getElementById(`nav-${viewName}`).classList.add('active');
+        // --- SPA & Dynamic Timer Logic ---
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            if(viewName !== 'login') {
+                document.getElementById(`view-${viewName}`).classList.add('active');
+                document.getElementById(`nav-${viewName}`).classList.add('active');
+            }
 
             const badge = document.getElementById('header-badge');
             if(viewName === 'map') badge.innerText = 'DRIVER MODE';
-            if(viewName === 'pay') badge.innerText = 'CHECKOUT';
+            if(viewName === 'pay') {
+                badge.innerText = 'CHECKOUT';
+                startDynamicTimer(); // Start real-time clock
+            } else {
+                clearInterval(timerInterval); // Stop clock if not in Pay view to save memory
+            }
             if(viewName === 'profile') badge.innerText = 'SETTINGS';
         }
 
-        // --- 4. Mock Payment Logic ---
+        function startDynamicTimer() {
+            clearInterval(timerInterval);
+            const activeCard = document.getElementById('receipt-active');
+            const emptyCard = document.getElementById('receipt-empty');
+            
+            if(!activeSession) {
+                activeCard.style.display = 'none';
+                emptyCard.style.display = 'block';
+                return;
+            }
+            
+            activeCard.style.display = 'block';
+            emptyCard.style.display = 'none';
+            document.getElementById('booked-spot-id').innerText = `Zone ${activeSession.spotId.charAt(0)} - ${activeSession.spotId}`;
+            
+            // Update immediately, then every second
+            updateTimerDisplay();
+            timerInterval = setInterval(updateTimerDisplay, 1000);
+        }
+
+        function updateTimerDisplay() {
+            if(!activeSession) return;
+            const elapsedMs = Date.now() - activeSession.startTime;
+            const totalSeconds = Math.floor(elapsedMs / 1000);
+            
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            
+            // Demo Logic: To make presentation exciting, base fee is $4.00, goes up 5 cents every real-time second!
+            const fee = 4.00 + (totalSeconds * 0.05);
+            
+            document.getElementById('dynamic-duration').innerText = `${mins.toString().padStart(2, '0')}m ${secs.toString().padStart(2, '0')}s`;
+            document.getElementById('dynamic-fee').innerText = `$${fee.toFixed(2)}`;
+        }
+
         function processPayment() {
-            const btn = document.querySelector('.pay-btn');
+            const btn = document.getElementById('checkout-btn');
             btn.innerText = 'Processing...';
-            btn.style.background = '#94a3b8'; 
+            btn.disabled = true;
 
             setTimeout(() => {
-                alert('Payment of $8.00 successful! The gate will open shortly.');
-                btn.innerText = 'Payment Complete ✓';
-                btn.style.background = '#10b981'; 
+                clearInterval(timerInterval);
+                showToast("💳 Payment Successful! Gate opening...", true);
                 
-                spots.find(s => s.id === 'A2').status = 'empty';
-                renderMap();
+                // Free the spot
+                const mySpot = spots.find(s => s.id === activeSession.spotId);
+                if(mySpot) mySpot.status = 'empty';
+                
+                activeSession = null;
+                localStorage.removeItem('asuSession');
+                
+                setTimeout(() => {
+                    btn.innerText = 'Pay Now';
+                    btn.disabled = false;
+                    switchView('map');
+                    renderMap();
+                }, 1500);
+
             }, 1000); 
         }
 
-        // Init Map silently in background
-        renderMap();
+        // Run on load
+        initApp();
     </script>
 </body>
 </html>
