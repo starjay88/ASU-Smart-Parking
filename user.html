@@ -52,29 +52,29 @@
         }
 
         /* --- View Sections (SPA Logic) --- */
-        .view-section {
-            display: none; /* Hide all views by default */
-            animation: fadeIn 0.3s ease-in-out;
-        }
-        .view-section.active {
-            display: block; /* Show only the active view */
-        }
+        .view-section { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .view-section.active { display: block; }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* --- LOGIN & AUTH VIEW STYLES --- */
+        .auth-container { padding: 40px 20px; text-align: center; margin-top: 20px;}
+        .auth-logo { font-size: 4rem; margin-bottom: 10px; animation: bounce 2s infinite ease-in-out;}
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .auth-title { font-size: 1.8rem; color: #0f172a; font-weight: 800; margin-bottom: 5px; }
+        .auth-subtitle { color: #64748b; font-size: 0.95rem; margin-bottom: 35px; font-weight: 600;}
+        .auth-form { display: flex; flex-direction: column; gap: 15px; }
+        .input-field { padding: 16px; border-radius: 12px; border: 1px solid #cbd5e1; font-size: 1rem; font-family: 'Plus Jakarta Sans', sans-serif; transition: 0.2s;}
+        .input-field:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
+        .auth-btn { background: #0f172a; color: white; border: none; padding: 18px; border-radius: 12px; font-size: 1.1rem; font-weight: 800; margin-top: 10px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(15,23,42,0.2);}
+        .auth-btn:active { transform: scale(0.98); }
+        .auth-switch { margin-top: 25px; color: #64748b; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
+        .auth-switch span { color: #3b82f6; text-decoration: underline;}
+
         /* --- MAP VIEW STYLES --- */
-        .status-card {
-            background: white;
-            margin: -15px 20px 20px 20px;
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-            text-align: center;
-            position: relative;
-            z-index: 10;
-        }
+        .status-card { background: white; margin: -15px 20px 20px 20px; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); text-align: center; position: relative; z-index: 10; }
         .status-card h2 { margin: 0; font-size: 3rem; color: #10b981; font-weight: 800; line-height: 1; }
         .status-card p { margin: 5px 0 0 0; color: #64748b; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;}
         .map-section { padding: 0 20px; }
@@ -108,7 +108,6 @@
         .settings-card { background: white; border-radius: 16px; padding: 10px 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
         .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f1f5f9; font-weight: 600; color: #334155; }
         .setting-item:last-child { border-bottom: none; }
-        /* Toggle Switch UI */
         .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 24px; }
@@ -139,12 +138,34 @@
 <body>
 
     <div class="mobile-container">
-        <div class="app-header">
+        
+        <div class="app-header" id="main-header" style="display: none;">
             <h1>ASU Smart Parking</h1>
             <div class="user-badge" id="header-badge">DRIVER MODE</div>
         </div>
 
-        <div id="view-map" class="view-section active">
+        <div id="view-login" class="view-section active">
+            <div class="auth-container">
+                <div class="auth-logo">🅿️</div>
+                <h2 class="auth-title" id="auth-title">Welcome Back</h2>
+                <p class="auth-subtitle" id="auth-subtitle">Log in to find your parking spot</p>
+                
+                <form class="auth-form" onsubmit="handleAuth(event)">
+                    <input type="text" id="auth-name" class="input-field" placeholder="Full Name" style="display: none;">
+                    
+                    <input type="email" id="auth-email" class="input-field" placeholder="ASU Email (@asu.edu)" required>
+                    <input type="password" id="auth-password" class="input-field" placeholder="Password" required>
+                    
+                    <button type="submit" class="auth-btn" id="auth-btn">Log In</button>
+                </form>
+                
+                <div class="auth-switch" onclick="toggleAuthMode()">
+                    <p id="auth-switch-text">Don't have an account? <span>Sign Up</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-map" class="view-section">
             <div class="status-card">
                 <h2 id="availableCount">--</h2>
                 <p>SPOTS AVAILABLE NOW</p>
@@ -164,7 +185,7 @@
                     <div style="color: #10b981; font-weight: 700; font-size: 0.9rem;">🟢 Active Parking</div>
                     
                     <div class="receipt-details">
-                        <div class="detail-row"><span>Vehicle</span> <span>KIA-9921</span></div>
+                        <div class="detail-row"><span>Vehicle</span> <span>ASU-9921</span></div>
                         <div class="detail-row"><span>Spot</span> <span>Zone A - A2</span></div>
                         <div class="detail-row"><span>Duration</span> <span>2 hrs 15 mins</span></div>
                         <div class="detail-row"><span>Rate</span> <span>$4.00 / hr</span></div>
@@ -179,14 +200,14 @@
             <div class="profile-section">
                 <div class="user-info">
                     <div class="avatar">👤</div>
-                    <h2>ASU Student</h2>
-                    <p>sparky@asu.edu</p>
+                    <h2 id="profile-name">ASU Student</h2>
+                    <p id="profile-email">sparky@asu.edu</p>
                 </div>
 
                 <div class="settings-card">
                     <div class="setting-item">
                         <span>Registered Vehicle</span>
-                        <span style="color:#3b82f6;">KIA-9921</span>
+                        <span style="color:#3b82f6;">ASU-9921</span>
                     </div>
                     <div class="setting-item">
                         <span>Payment Method</span>
@@ -200,11 +221,14 @@
                         <span>Auto-Pay on Exit</span>
                         <label class="switch"><input type="checkbox"><span class="slider"></span></label>
                     </div>
+                    <div class="setting-item" style="cursor: pointer; color: #ef4444;" onclick="logout()">
+                        <span style="font-weight: 800;">Log Out</span>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="bottom-nav">
+        <div class="bottom-nav" id="main-nav" style="display: none;">
             <div class="nav-item active" id="nav-map" onclick="switchView('map')">
                 <span class="nav-icon">📍</span>Map
             </div>
@@ -218,7 +242,59 @@
     </div>
 
     <script>
-        // --- 1. Map Data & Logic ---
+        // --- 1. Authentication (Login/Signup) Logic ---
+        let isLoginMode = true;
+
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('auth-title').innerText = isLoginMode ? 'Welcome Back' : 'Create Account';
+            document.getElementById('auth-subtitle').innerText = isLoginMode ? 'Log in to find your parking spot' : 'Join ASU Smart Parking today';
+            document.getElementById('auth-btn').innerText = isLoginMode ? 'Log In' : 'Sign Up';
+            document.getElementById('auth-switch-text').innerHTML = isLoginMode ? "Don't have an account? <span>Sign Up</span>" : "Already have an account? <span>Log In</span>";
+            
+            // Show/hide name field based on mode
+            document.getElementById('auth-name').style.display = isLoginMode ? 'none' : 'block';
+            if(!isLoginMode) document.getElementById('auth-name').required = true;
+            else document.getElementById('auth-name').required = false;
+        }
+
+        function handleAuth(event) {
+            event.preventDefault(); // Prevent page refresh on form submit
+            
+            // Get user input data to display later
+            const email = document.getElementById('auth-email').value;
+            let name = document.getElementById('auth-name').value;
+            if(!name) name = email.split('@')[0]; // Fallback to email prefix if name is empty
+
+            // Update Profile View with inputted data
+            document.getElementById('profile-name').innerText = isLoginMode ? name : name;
+            document.getElementById('profile-email').innerText = email;
+
+            // Hide Login, Show Main App Elements
+            document.getElementById('view-login').classList.remove('active');
+            document.getElementById('main-header').style.display = 'block';
+            document.getElementById('main-nav').style.display = 'flex';
+            
+            // Show Map View
+            switchView('map');
+        }
+
+        function logout() {
+            // Hide App Elements, Show Login
+            document.getElementById('main-header').style.display = 'none';
+            document.getElementById('main-nav').style.display = 'none';
+            document.getElementById('view-map').classList.remove('active');
+            document.getElementById('view-pay').classList.remove('active');
+            document.getElementById('view-profile').classList.remove('active');
+            
+            // Clear inputs
+            document.getElementById('auth-email').value = '';
+            document.getElementById('auth-password').value = '';
+            
+            document.getElementById('view-login').classList.add('active');
+        }
+
+        // --- 2. Map Data & Logic ---
         let spots = [
             { id: 'A1', status: 'empty' }, { id: 'A2', status: 'occupied' }, { id: 'A3', status: 'empty' }, { id: 'A4', status: 'empty' }, { id: 'A5', status: 'occupied' },
             { id: 'B1', status: 'empty' }, { id: 'B2', status: 'empty' }, { id: 'B3', status: 'occupied' }, { id: 'B4', status: 'empty' }, { id: 'B5', status: 'empty' },
@@ -249,7 +325,6 @@
                     div.className = `spot ${spot.status}`;
                     div.innerText = spot.id;
                     
-                    // Click to reserve/toggle (Demo purpose)
                     div.onclick = () => {
                         if(spot.status === 'empty') {
                             alert(`Spot ${spot.id} selected! Proceed to parking.`);
@@ -272,47 +347,42 @@
             document.getElementById('availableCount').innerText = emptyCount;
         }
 
-        // --- 2. Single Page Application (SPA) Logic ---
+        // --- 3. Single Page Application (SPA) Logic ---
         function switchView(viewName) {
-            // Hide all views
             document.getElementById('view-map').classList.remove('active');
             document.getElementById('view-pay').classList.remove('active');
             document.getElementById('view-profile').classList.remove('active');
             
-            // Remove active state from all nav items
             document.getElementById('nav-map').classList.remove('active');
             document.getElementById('nav-pay').classList.remove('active');
             document.getElementById('nav-profile').classList.remove('active');
 
-            // Show selected view and activate nav item
             document.getElementById(`view-${viewName}`).classList.add('active');
             document.getElementById(`nav-${viewName}`).classList.add('active');
 
-            // Dynamic Header Badge Update
             const badge = document.getElementById('header-badge');
             if(viewName === 'map') badge.innerText = 'DRIVER MODE';
             if(viewName === 'pay') badge.innerText = 'CHECKOUT';
             if(viewName === 'profile') badge.innerText = 'SETTINGS';
         }
 
-        // --- 3. Mock Payment Logic ---
+        // --- 4. Mock Payment Logic ---
         function processPayment() {
             const btn = document.querySelector('.pay-btn');
             btn.innerText = 'Processing...';
-            btn.style.background = '#94a3b8'; // gray out
+            btn.style.background = '#94a3b8'; 
 
             setTimeout(() => {
-                alert('Payment of $8.00 successful! Thank you for using ASU Smart Parking. The gate will open shortly.');
+                alert('Payment of $8.00 successful! The gate will open shortly.');
                 btn.innerText = 'Payment Complete ✓';
-                btn.style.background = '#10b981'; // green success
+                btn.style.background = '#10b981'; 
                 
-                // Simulate spot A2 freeing up
                 spots.find(s => s.id === 'A2').status = 'empty';
                 renderMap();
-            }, 1000); // 1 second delay simulation
+            }, 1000); 
         }
 
-        // Init
+        // Init Map silently in background
         renderMap();
     </script>
 </body>
