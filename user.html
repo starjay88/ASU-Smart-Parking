@@ -10,31 +10,33 @@
             font-family: 'Plus Jakarta Sans', sans-serif; 
             margin: 0; 
             padding: 0; 
-            background-color: #e2e8f0; /* Soft background outside the app */
+            background-color: #e2e8f0; 
             display: flex;
             justify-content: center;
         }
         
-        /* Mobile App Container Constraint */
         .mobile-container {
             width: 100%;
-            max-width: 414px; /* Standard smartphone width */
+            max-width: 414px; 
             background-color: #f1f5f9;
             min-height: 100vh;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
             position: relative;
-            padding-bottom: 80px; /* Space for bottom nav */
+            padding-bottom: 80px; 
+            overflow-x: hidden;
         }
 
         /* App Header */
         .app-header {
-            background: #0f172a; /* Matching Admin Dark Navy */
+            background: #0f172a; 
             color: white;
             padding: 25px 20px 20px 20px;
             text-align: center;
             border-bottom-left-radius: 20px;
             border-bottom-right-radius: 20px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: relative;
+            z-index: 20;
         }
         .app-header h1 { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: 0.5px; }
         .user-badge { 
@@ -49,7 +51,20 @@
             letter-spacing: 1px;
         }
 
-        /* Real-time Availability Card */
+        /* --- View Sections (SPA Logic) --- */
+        .view-section {
+            display: none; /* Hide all views by default */
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .view-section.active {
+            display: block; /* Show only the active view */
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- MAP VIEW STYLES --- */
         .status-card {
             background: white;
             margin: -15px 20px 20px 20px;
@@ -62,59 +77,46 @@
         }
         .status-card h2 { margin: 0; font-size: 3rem; color: #10b981; font-weight: 800; line-height: 1; }
         .status-card p { margin: 5px 0 0 0; color: #64748b; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;}
-
-        /* Live Parking Map Section */
         .map-section { padding: 0 20px; }
         .map-section h3 { font-size: 1.1rem; color: #1e293b; margin-bottom: 12px; font-weight: 800; }
-        
-        /* Dark Asphalt Theme for Parking Lot (Matches Admin) */
-        .parking-lot-wrapper {
-            background: #374151;
-            border-radius: 16px;
-            padding: 15px;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.2);
-        }
-        .zone-label {
-            color: #9ca3af;
-            font-size: 0.7rem;
-            font-weight: 800;
-            letter-spacing: 1.5px;
-            margin: 10px 0 5px 0;
-            padding-left: 2px;
-        }
-        
+        .parking-lot-wrapper { background: #374151; border-radius: 16px; padding: 15px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); }
+        .zone-label { color: #9ca3af; font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; margin: 10px 0 5px 0; padding-left: 2px; }
         .spot-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
-        .spot { 
-            padding: 12px 0; 
-            text-align: center; 
-            border-radius: 6px; 
-            font-size: 0.8rem; 
-            font-weight: 800; 
-            color: white;
-            border: 1.5px solid rgba(255,255,255,0.15);
-            transition: all 0.2s;
-            cursor: pointer;
-        }
+        .spot { padding: 12px 0; text-align: center; border-radius: 6px; font-size: 0.8rem; font-weight: 800; color: white; border: 1.5px solid rgba(255,255,255,0.15); transition: all 0.2s; cursor: pointer; }
         .empty { background-color: #10b981; border-color: #34d399; }
-        .occupied { background-color: #ef4444; border-color: #f87171; opacity: 0.4; } /* Dimmed to highlight available spots */
+        .occupied { background-color: #ef4444; border-color: #f87171; opacity: 0.4; }
+        .driving-lane { height: 20px; background: #4b5563; border-radius: 4px; margin: 12px 0; position: relative; }
+        .driving-lane::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: repeating-linear-gradient(90deg, #fbbf24 0, #fbbf24 10px, transparent 10px, transparent 20px); transform: translateY(-50%); }
 
-        /* Driving Lane with Yellow Dashed Lines */
-        .driving-lane {
-            height: 20px;
-            background: #4b5563;
-            border-radius: 4px;
-            margin: 12px 0;
-            position: relative;
-        }
-        .driving-lane::before {
-            content: '';
-            position: absolute;
-            top: 50%; left: 0; right: 0; height: 2px;
-            background: repeating-linear-gradient(90deg, #fbbf24 0, #fbbf24 10px, transparent 10px, transparent 20px);
-            transform: translateY(-50%);
-        }
+        /* --- PAY VIEW STYLES --- */
+        .pay-section { padding: 20px; }
+        .receipt-card { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; border-top: 6px solid #3b82f6; }
+        .receipt-card h3 { color: #64748b; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 0; }
+        .amount { font-size: 3.5rem; font-weight: 800; color: #0f172a; margin: 10px 0; }
+        .receipt-details { margin-top: 20px; text-align: left; border-top: 1px dashed #cbd5e1; padding-top: 20px; }
+        .detail-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; font-weight: 600; color: #475569; }
+        .detail-row span:last-child { color: #0f172a; font-weight: 800; }
+        .pay-btn { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; width: 100%; padding: 16px; border-radius: 12px; font-size: 1.1rem; font-weight: 800; margin-top: 25px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
+        .pay-btn:active { transform: scale(0.98); }
+        
+        /* --- PROFILE VIEW STYLES --- */
+        .profile-section { padding: 20px; }
+        .user-info { text-align: center; margin-bottom: 30px; }
+        .avatar { width: 80px; height: 80px; background: #3b82f6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; margin: 0 auto 15px auto; font-weight: 800; box-shadow: 0 4px 10px rgba(59,130,246,0.3);}
+        .user-info h2 { margin: 0; color: #0f172a; font-size: 1.4rem; font-weight: 800; }
+        .user-info p { margin: 5px 0 0 0; color: #64748b; font-size: 0.9rem; }
+        .settings-card { background: white; border-radius: 16px; padding: 10px 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f1f5f9; font-weight: 600; color: #334155; }
+        .setting-item:last-child { border-bottom: none; }
+        /* Toggle Switch UI */
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        input:checked + .slider { background-color: #10b981; }
+        input:checked + .slider:before { transform: translateX(20px); }
 
-        /* Bottom Navigation Bar */
+        /* --- Bottom Navigation --- */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -128,9 +130,10 @@
             box-shadow: 0 -4px 10px rgba(0,0,0,0.03);
             z-index: 100;
         }
-        .nav-item { text-align: center; color: #64748b; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: 0.2s;}
-        .nav-item.active { color: #3b82f6; }
-        .nav-icon { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+        .nav-item { text-align: center; color: #94a3b8; font-size: 0.75rem; font-weight: 800; cursor: pointer; transition: 0.2s; width: 33%;}
+        .nav-item.active { color: #3b82f6; transform: translateY(-2px);}
+        .nav-icon { font-size: 1.4rem; display: block; margin-bottom: 4px; filter: grayscale(100%); opacity: 0.6; transition: 0.2s;}
+        .nav-item.active .nav-icon { filter: grayscale(0%); opacity: 1; }
     </style>
 </head>
 <body>
@@ -138,29 +141,84 @@
     <div class="mobile-container">
         <div class="app-header">
             <h1>ASU Smart Parking</h1>
-            <div class="user-badge">DRIVER MODE</div>
+            <div class="user-badge" id="header-badge">DRIVER MODE</div>
         </div>
 
-        <div class="status-card">
-            <h2 id="availableCount">--</h2>
-            <p>SPOTS AVAILABLE NOW</p>
+        <div id="view-map" class="view-section active">
+            <div class="status-card">
+                <h2 id="availableCount">--</h2>
+                <p>SPOTS AVAILABLE NOW</p>
+            </div>
+            <div class="map-section">
+                <h3>Live Floor Map</h3>
+                <div class="parking-lot-wrapper" id="parkingLot">
+                    </div>
+            </div>
         </div>
 
-        <div class="map-section">
-            <h3>Live Floor Map</h3>
-            <div class="parking-lot-wrapper" id="parkingLot">
+        <div id="view-pay" class="view-section">
+            <div class="pay-section">
+                <div class="receipt-card">
+                    <h3>Current Session</h3>
+                    <div class="amount">$8.00</div>
+                    <div style="color: #10b981; font-weight: 700; font-size: 0.9rem;">🟢 Active Parking</div>
+                    
+                    <div class="receipt-details">
+                        <div class="detail-row"><span>Vehicle</span> <span>ASU-9921</span></div>
+                        <div class="detail-row"><span>Spot</span> <span>Zone A - A2</span></div>
+                        <div class="detail-row"><span>Duration</span> <span>2 hrs 15 mins</span></div>
+                        <div class="detail-row"><span>Rate</span> <span>$4.00 / hr</span></div>
+                    </div>
+
+                    <button class="pay-btn" onclick="processPayment()">Pay Now</button>
                 </div>
+            </div>
+        </div>
+
+        <div id="view-profile" class="view-section">
+            <div class="profile-section">
+                <div class="user-info">
+                    <div class="avatar">👤</div>
+                    <h2>ASU Student</h2>
+                    <p>sparky@asu.edu</p>
+                </div>
+
+                <div class="settings-card">
+                    <div class="setting-item">
+                        <span>Registered Vehicle</span>
+                        <span style="color:#3b82f6;">ASU-9921</span>
+                    </div>
+                    <div class="setting-item">
+                        <span>Payment Method</span>
+                        <span>Visa ending in 4242</span>
+                    </div>
+                    <div class="setting-item">
+                        <span>Push Notifications</span>
+                        <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                    </div>
+                    <div class="setting-item">
+                        <span>Auto-Pay on Exit</span>
+                        <label class="switch"><input type="checkbox"><span class="slider"></span></label>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="bottom-nav">
-            <div class="nav-item active"><span class="nav-icon">📍</span>Map</div>
-            <div class="nav-item"><span class="nav-icon">💳</span>Pay</div>
-            <div class="nav-item"><span class="nav-icon">👤</span>Profile</div>
+            <div class="nav-item active" id="nav-map" onclick="switchView('map')">
+                <span class="nav-icon">📍</span>Map
+            </div>
+            <div class="nav-item" id="nav-pay" onclick="switchView('pay')">
+                <span class="nav-icon">💳</span>Pay
+            </div>
+            <div class="nav-item" id="nav-profile" onclick="switchView('profile')">
+                <span class="nav-icon">👤</span>Profile
+            </div>
         </div>
     </div>
 
     <script>
-        // 1. Initial 20 Spots Data (Matches Admin Dashboard)
+        // --- 1. Map Data & Logic ---
         let spots = [
             { id: 'A1', status: 'empty' }, { id: 'A2', status: 'occupied' }, { id: 'A3', status: 'empty' }, { id: 'A4', status: 'empty' }, { id: 'A5', status: 'occupied' },
             { id: 'B1', status: 'empty' }, { id: 'B2', status: 'empty' }, { id: 'B3', status: 'occupied' }, { id: 'B4', status: 'empty' }, { id: 'B5', status: 'empty' },
@@ -170,53 +228,91 @@
 
         const zones = ['A', 'B', 'C', 'D'];
 
-        // 2. Render Map Function
         function renderMap() {
             const lot = document.getElementById('parkingLot');
             lot.innerHTML = '';
             let emptyCount = 0;
 
             zones.forEach((zone, index) => {
-                // Zone Label
                 const label = document.createElement('div');
                 label.className = 'zone-label';
                 label.innerText = `ZONE ${zone}`;
                 lot.appendChild(label);
 
-                // Spot Row
                 const row = document.createElement('div');
                 row.className = 'spot-grid';
                 
                 const zoneSpots = spots.filter(s => s.id.startsWith(zone));
                 zoneSpots.forEach(spot => {
                     if(spot.status === 'empty') emptyCount++;
-                    
                     const div = document.createElement('div');
                     div.className = `spot ${spot.status}`;
                     div.innerText = spot.id;
                     
-                    // Demo purpose: allow clicking to toggle states in presentation
+                    // Click to reserve/toggle (Demo purpose)
                     div.onclick = () => {
-                        spot.status = spot.status === 'empty' ? 'occupied' : 'empty';
+                        if(spot.status === 'empty') {
+                            alert(`Spot ${spot.id} selected! Proceed to parking.`);
+                            spot.status = 'occupied';
+                        } else {
+                            spot.status = 'empty';
+                        }
                         renderMap();
                     };
                     row.appendChild(div);
                 });
                 lot.appendChild(row);
 
-                // Add driving lane after Zone B
                 if (index === 1) {
                     const lane = document.createElement('div');
                     lane.className = 'driving-lane';
                     lot.appendChild(lane);
                 }
             });
-
-            // Update Big Number Card
             document.getElementById('availableCount').innerText = emptyCount;
         }
 
-        // Initialize App
+        // --- 2. Single Page Application (SPA) Logic ---
+        function switchView(viewName) {
+            // Hide all views
+            document.getElementById('view-map').classList.remove('active');
+            document.getElementById('view-pay').classList.remove('active');
+            document.getElementById('view-profile').classList.remove('active');
+            
+            // Remove active state from all nav items
+            document.getElementById('nav-map').classList.remove('active');
+            document.getElementById('nav-pay').classList.remove('active');
+            document.getElementById('nav-profile').classList.remove('active');
+
+            // Show selected view and activate nav item
+            document.getElementById(`view-${viewName}`).classList.add('active');
+            document.getElementById(`nav-${viewName}`).classList.add('active');
+
+            // Dynamic Header Badge Update
+            const badge = document.getElementById('header-badge');
+            if(viewName === 'map') badge.innerText = 'DRIVER MODE';
+            if(viewName === 'pay') badge.innerText = 'CHECKOUT';
+            if(viewName === 'profile') badge.innerText = 'SETTINGS';
+        }
+
+        // --- 3. Mock Payment Logic ---
+        function processPayment() {
+            const btn = document.querySelector('.pay-btn');
+            btn.innerText = 'Processing...';
+            btn.style.background = '#94a3b8'; // gray out
+
+            setTimeout(() => {
+                alert('Payment of $8.00 successful! Thank you for using ASU Smart Parking. The gate will open shortly.');
+                btn.innerText = 'Payment Complete ✓';
+                btn.style.background = '#10b981'; // green success
+                
+                // Simulate spot A2 freeing up
+                spots.find(s => s.id === 'A2').status = 'empty';
+                renderMap();
+            }, 1000); // 1 second delay simulation
+        }
+
+        // Init
         renderMap();
     </script>
 </body>
