@@ -110,18 +110,18 @@
                 <h2 class="auth-title" id="auth-title">Welcome Back</h2>
                 <p class="auth-subtitle" id="auth-subtitle">Log in to find your parking spot instantly</p>
                 
-                <form class="auth-form" onsubmit="handleAuth(event)">
+                <form class="auth-form" onsubmit="window.handleAuth(event)">
                     <input type="text" id="auth-name" class="input-field" placeholder="Full Name" style="display: none;">
                     <input type="email" id="auth-email" class="input-field" placeholder="ASU Email (@asu.edu)" required>
                     <input type="password" id="auth-password" class="input-field" placeholder="Password" required>
                     <input type="password" id="auth-confirm-password" class="input-field" placeholder="Confirm Password" style="display: none;">
                     
-                    <div class="auth-link" id="auth-forget-link" onclick="resetPassword()" style="margin-top:-5px;">Forgot Password?</div>
+                    <div class="auth-link" id="auth-forget-link" onclick="window.resetPassword()" style="margin-top:-5px;">Forgot Password?</div>
                     
                     <button type="submit" class="auth-btn" id="auth-btn">Log In</button>
                 </form>
                 
-                <div class="auth-switch" onclick="toggleAuthMode()">
+                <div class="auth-switch" onclick="window.toggleAuthMode()">
                     <p id="auth-switch-text">Don't have an account? <span>Sign Up</span></p>
                 </div>
             </div>
@@ -152,7 +152,7 @@
                         <div class="detail-row"><span>Rate</span> <span>$0.01 / 10 sec</span></div>
                     </div>
 
-                    <button class="pay-btn" id="checkout-btn" onclick="processPayment()">Pay Now</button>
+                    <button class="pay-btn" id="checkout-btn" onclick="window.processPayment()">Pay Now</button>
                 </div>
 
                 <div class="receipt-card" id="receipt-empty">
@@ -175,21 +175,37 @@
                     <div class="setting-item"><span>Registered Vehicle</span><span style="color:#3b82f6;">ASU-9921</span></div>
                     <div class="setting-item"><span>Payment Method</span><span>Visa ending in 4242</span></div>
                     <div class="setting-item"><span>Push Notifications</span><label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-                    <div class="setting-item" style="cursor: pointer; color: #ef4444;" onclick="logout()"><span style="font-weight: 800;">Log Out</span></div>
+                    <div class="setting-item" style="cursor: pointer; color: #ef4444;" onclick="window.logout()"><span style="font-weight: 800;">Log Out</span></div>
                 </div>
             </div>
         </div>
 
         <div class="bottom-nav" id="main-nav" style="display: none;">
-            <div class="nav-item active" id="nav-map" onclick="switchView('map')"><span class="nav-icon">📍</span>Map</div>
-            <div class="nav-item" id="nav-pay" onclick="switchView('pay')"><span class="nav-icon">💳</span>Pay</div>
-            <div class="nav-item" id="nav-profile" onclick="switchView('profile')"><span class="nav-icon">👤</span>Profile</div>
+            <div class="nav-item active" id="nav-map" onclick="window.switchView('map')"><span class="nav-icon">📍</span>Map</div>
+            <div class="nav-item" id="nav-pay" onclick="window.switchView('pay')"><span class="nav-icon">💳</span>Pay</div>
+            <div class="nav-item" id="nav-profile" onclick="window.switchView('profile')"><span class="nav-icon">👤</span>Profile</div>
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB7OgTN8aChXK3aCyLzJ7SV5Qz0hiTyc5s",
+            authDomain: "asu-smart-parking.firebaseapp.com",
+            projectId: "asu-smart-parking",
+            storageBucket: "asu-smart-parking.firebasestorage.app",
+            messagingSenderId: "548514029409",
+            appId: "1:548514029409:web:c85ec7a8fbd26f1a482f20",
+            measurementId: "G-RLWB6NNMCK"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
         // --- Custom Toast UI ---
-        function showToast(message, isSuccess = true) {
+        window.showToast = function(message, isSuccess = true) {
             const toast = document.getElementById("toast");
             toast.innerText = message;
             toast.style.backgroundColor = isSuccess ? '#10b981' : '#ef4444';
@@ -211,11 +227,11 @@
         let activeSession = null; 
         let timerInterval = null;
         let globalTimer = null;
-        let reservationLimit = 300000 // reservation expires after 5 minutes, for testing purposes
-        let finalWarningLimit = 90000 // final warning at 1m 30s
+        let reservationLimit = 300000;
+        let finalWarningLimit = 90000;
 
         // Initialize App
-        function initApp() {
+        window.initApp = function() {
             const savedSpots = localStorage.getItem('asuSpots');
             spots = savedSpots ? JSON.parse(savedSpots) : defaultSpots;
 
@@ -224,40 +240,33 @@
             
             if (savedSession) {
                 activeSession = JSON.parse(savedSession);
-            
-                // ensure reservedAt exists
-                if (!activeSession.reservedAt) {
-                    activeSession.reservedAt = Date.now();
-                }
+                if (!activeSession.reservedAt) activeSession.reservedAt = Date.now();
             }
 
             if(savedUser) {
                 currentUser = JSON.parse(savedUser);
-                loginSuccessUI(currentUser.name, currentUser.email);
+                window.loginSuccessUI(currentUser.name, currentUser.email);
             } else {
-                renderMap(); 
+                window.renderMap(); 
             }
-            globalTimer = setInterval(checkReservationStatus, 1000);
+            globalTimer = setInterval(window.checkReservationStatus, 1000);
             
             // Free expired user reservations on load
             spots.forEach(spot => {
-                // Check for a user-reserved spot
                 if (spot.reservedAt) {
                     const elapsed = Date.now() - spot.reservedAt;
                     if (elapsed > reservationLimit) {
-                        // Free the spot and remove the timestamp
                         spot.status = 'empty';
                         delete spot.reservedAt;
                     }
                 }
             });
-            
             localStorage.setItem('asuSpots', JSON.stringify(spots));
         }
 
-        // --- Auth Logic ---
+        // --- Firebase Auth Logic ---
         let isLoginMode = true;
-        function toggleAuthMode() {
+        window.toggleAuthMode = function() {
             isLoginMode = !isLoginMode;
             document.getElementById('auth-title').innerText = isLoginMode ? 'Welcome Back' : 'Create Account';
             document.getElementById('auth-subtitle').innerText = isLoginMode ? 'Log in to find your parking spot instantly' : 'Sign up to access real-time ASU parking';
@@ -268,56 +277,85 @@
             document.getElementById('auth-forget-link').style.display = isLoginMode ? 'block' : 'none';
         }
 
-        function handleAuth(event) {
+        window.handleAuth = async function(event) {
             event.preventDefault();
+            const btn = document.getElementById('auth-btn');
+
             if (!isLoginMode) {
                 if (document.getElementById('auth-password').value !== document.getElementById('auth-confirm-password').value) {
-                    showToast("❌ Passwords do not match", false); return;
+                    window.showToast("❌ Passwords do not match", false); return;
                 }
             }
             const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
             let name = document.getElementById('auth-name').value || email.split('@')[0];
             
-            currentUser = { name, email };
-            localStorage.setItem('asuUser', JSON.stringify(currentUser));
-            
-            showToast("✅ Login Successful!");
-            loginSuccessUI(name, email);
+            btn.innerText = "Processing...";
+            btn.disabled = true;
+
+            try {
+                if(isLoginMode) {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    window.showToast("✅ Login Successful!");
+                } else {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                    window.showToast("🎉 Account Created Successfully!");
+                }
+
+                currentUser = { name, email };
+                localStorage.setItem('asuUser', JSON.stringify(currentUser));
+                window.loginSuccessUI(name, email);
+            } catch (error) {
+                console.error(error);
+                let errorMessage = error.message;
+                if(error.code === 'auth/email-already-in-use') errorMessage = "Email is already registered.";
+                if(error.code === 'auth/invalid-credential') errorMessage = "Incorrect email or password.";
+                if(error.code === 'auth/weak-password') errorMessage = "Password should be at least 6 characters.";
+                window.showToast("❌ " + errorMessage, false);
+            } finally {
+                btn.innerText = isLoginMode ? 'Log In' : 'Sign Up';
+                btn.disabled = false;
+            }
         }
 
-        function loginSuccessUI(name, email) {
+        window.loginSuccessUI = function(name, email) {
             document.getElementById('profile-name').innerText = name;
             document.getElementById('profile-email').innerText = email;
             document.getElementById('view-login').classList.remove('active');
             document.getElementById('main-header').style.display = 'block';
             document.getElementById('main-nav').style.display = 'flex';
-            switchView('map');
-            renderMap();
+            window.switchView('map');
+            window.renderMap();
         }
 
-        function logout() {
-            localStorage.removeItem('asuUser');
-            localStorage.removeItem('asuSession'); 
-            activeSession = null;
-            currentUser = null;
-            
-            document.getElementById('main-header').style.display = 'none';
-            document.getElementById('main-nav').style.display = 'none';
-            
-            if(!isLoginMode) toggleAuthMode(); // Reset to login screen if it was on signup
-            
-            document.getElementById('auth-email').value = '';
-            document.getElementById('auth-password').value = '';
-            document.getElementById('auth-confirm-password').value = '';
-            
-            switchView('login');
-            showToast("Logged out successfully");
+        window.logout = async function() {
+            try {
+                await signOut(auth);
+                localStorage.removeItem('asuUser');
+                localStorage.removeItem('asuSession'); 
+                activeSession = null;
+                currentUser = null;
+                
+                document.getElementById('main-header').style.display = 'none';
+                document.getElementById('main-nav').style.display = 'none';
+                
+                if(!isLoginMode) window.toggleAuthMode();
+                
+                document.getElementById('auth-email').value = '';
+                document.getElementById('auth-password').value = '';
+                document.getElementById('auth-confirm-password').value = '';
+                
+                window.switchView('login');
+                window.showToast("Logged out successfully");
+            } catch (error) {
+                window.showToast("❌ Error logging out", false);
+            }
         }
 
-        function resetPassword() { showToast("📧 Reset link sent to your email!"); }
+        window.resetPassword = function() { window.showToast("📧 Reset link sent to your email!"); }
 
         // --- Map Logic ---
-        function renderMap() {
+        window.renderMap = function() {
             const lot = document.getElementById('parkingLot');
             lot.innerHTML = '';
             let emptyCount = 0;
@@ -344,7 +382,7 @@
                         div.innerText = spot.id;
                     }
                     
-                    div.onclick = () => handleSpotClick(spot);
+                    div.onclick = () => window.handleSpotClick(spot);
                     row.appendChild(div);
                 });
                 lot.appendChild(row);
@@ -358,17 +396,17 @@
             localStorage.setItem('asuSpots', JSON.stringify(spots)); 
         }
 
-        function handleSpotClick(spot) {
+        window.handleSpotClick = function(spot) {
             if(activeSession && activeSession.spotId === spot.id) {
-                showToast("Navigate to the Pay tab to checkout.", false);
+                window.showToast("Navigate to the Pay tab to checkout.", false);
                 return;
             }
             if(activeSession) {
-                showToast("You already have an active parking session!", false);
+                window.showToast("You already have an active parking session!", false);
                 return;
             }
             if(spot.status === 'occupied') {
-                showToast("Spot is already taken.", false);
+                window.showToast("Spot is already taken.", false);
                 return;
             }
             
@@ -384,39 +422,35 @@
             };
             localStorage.setItem('asuSession', JSON.stringify(activeSession));
             
-            showToast(`✅ Spot ${spot.id} Reserved! Timer started.`);
-            renderMap();
+            window.showToast(`✅ Spot ${spot.id} Reserved! Timer started.`);
+            window.renderMap();
         }
 
         // --- SPA & Dynamic Timer Logic ---
-        function switchView(viewName) {
-            // 1. Hide all views and nav items
+        window.switchView = function(viewName) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             
-            // 2. Show the target view
             const targetView = document.getElementById(`view-${viewName}`);
             if(targetView) targetView.classList.add('active');
 
-            // 3. Highlight the target nav item (except for login screen)
             if(viewName !== 'login') {
                 const targetNav = document.getElementById(`nav-${viewName}`);
                 if(targetNav) targetNav.classList.add('active');
             }
 
-            // 4. Update Header and Timers
             const badge = document.getElementById('header-badge');
             if(viewName === 'map') badge.innerText = 'DRIVER MODE';
             if(viewName === 'pay') {
                 badge.innerText = 'CHECKOUT';
-                startDynamicTimer(); 
+                window.startDynamicTimer(); 
             } else {
                 clearInterval(timerInterval); 
             }
             if(viewName === 'profile') badge.innerText = 'SETTINGS';
         }
 
-        function startDynamicTimer() {
+        window.startDynamicTimer = function() {
             clearInterval(timerInterval);
             const activeCard = document.getElementById('receipt-active');
             const emptyCard = document.getElementById('receipt-empty');
@@ -431,11 +465,11 @@
             emptyCard.style.display = 'none';
             document.getElementById('booked-spot-id').innerText = `Zone ${activeSession.spotId.charAt(0)} - ${activeSession.spotId}`;
             
-            updateTimerDisplay();
-            timerInterval = setInterval(updateTimerDisplay, 1000);
+            window.updateTimerDisplay();
+            timerInterval = setInterval(window.updateTimerDisplay, 1000);
         }
 
-        function updateTimerDisplay() {            
+        window.updateTimerDisplay = function() {            
             if(!activeSession) return;
             const elapsedMs = Date.now() - activeSession.startTime;
             const totalSeconds = Math.floor(elapsedMs / 1000);
@@ -443,7 +477,6 @@
             const mins = Math.floor(totalSeconds / 60);
             const secs = totalSeconds % 60;
             
-            // Fee starts at $0.00 and increases by $0.01 every 10 real-time seconds
             const fee = 0.00 + (Math.floor(totalSeconds / 10) * 0.01);
             
             document.getElementById('dynamic-duration').innerText = `${mins.toString().padStart(2, '0')}m ${secs.toString().padStart(2, '0')}s`;
@@ -456,32 +489,31 @@
                 `⏳ ${(remainingMins > 0) ? (remainingMins.toString() + 'm ') : ' '}${remainingSecs.toString().padStart(2, '0')}s remaining`;
         }
 
-        function processPayment() {
+        window.processPayment = function() {
             const btn = document.getElementById('checkout-btn');
             btn.innerText = 'Processing...';
             btn.disabled = true;
 
             setTimeout(() => {
                 clearInterval(timerInterval);
-                showToast("💳 Payment Successful! Gate opening...", true);
+                window.showToast("💳 Payment Successful! Gate opening...", true);
                 
-                clearSession();
+                window.clearSession();
                 
                 setTimeout(() => {
                     btn.innerText = 'Pay Now';
                     btn.disabled = false;
-                    switchView('map');
-                    renderMap();
+                    window.switchView('map');
+                    window.renderMap();
                 }, 1500);
 
             }, 1000); 
         }
 
-        function checkReservationStatus() {
+        window.checkReservationStatus = function() {
             const now = Date.now();
             let spotsChanged = false;
             
-            // Expire user-reserved spots properly
             spots.forEach(spot => {
                 if (spot.reservedAt) {
                     const elapsed = now - spot.reservedAt;
@@ -490,12 +522,11 @@
                         delete spot.reservedAt;
                         spotsChanged = true;
         
-                        // If this was the current activeSession, clear it
                         if (activeSession && activeSession.spotId === spot.id) {
-                            showToast("⏱️ Reservation expired!", false);
+                            window.showToast("⏱️ Reservation expired!", false);
                             activeSession = null;
                             localStorage.removeItem('asuSession');
-                            switchView('map')
+                            window.switchView('map');
                         }
                     }
                 }
@@ -503,7 +534,7 @@
             
             if (spotsChanged) {
                 localStorage.setItem('asuSpots', JSON.stringify(spots));
-                renderMap();
+                window.renderMap();
             }
             
             if (!activeSession || !activeSession.reservedAt) return;
@@ -519,33 +550,28 @@
             const finalWarningLimitMins = Math.floor(finalWarningLimitSecs / 60);
             const finalWarningLimitSecsMod = finalWarningLimitSecs % 60
             
-            // Half-time warning
             if (!activeSession.halfTimeWarned && remaining <= (reservationLimit / 2) && remaining > finalWarningLimit) {
-                showToast(`⚠️ ${(Math.floor(reservationLimitMins / 2) > 0) ? (Math.floor(reservationLimitMins / 2).toString() + 'm ') : ' '}${Math.floor((reservationLimitSecs / 2) % 60).toString().padStart(2, '0')}s remaining on your reservation!`, false);
+                window.showToast(`⚠️ ${(Math.floor(reservationLimitMins / 2) > 0) ? (Math.floor(reservationLimitMins / 2).toString() + 'm ') : ' '}${Math.floor((reservationLimitSecs / 2) % 60).toString().padStart(2, '0')}s remaining on your reservation!`, false);
                 activeSession.halfTimeWarned = true;
                 localStorage.setItem('asuSession', JSON.stringify(activeSession));
             }
         
-            // Final warning
             if (!activeSession.finalWarned && remaining <= finalWarningLimit && remaining > 0) {
-                showToast(`🚨 Only ${(finalWarningLimitMins > 0) ? (finalWarningLimitMins.toString() + 'm ') : ' '}${finalWarningLimitSecsMod.toString().padStart(2, '0')}s left!`, false);
+                window.showToast(`🚨 Only ${(finalWarningLimitMins > 0) ? (finalWarningLimitMins.toString() + 'm ') : ' '}${finalWarningLimitSecsMod.toString().padStart(2, '0')}s left!`, false);
                 activeSession.finalWarned = true;
                 localStorage.setItem('asuSession', JSON.stringify(activeSession));
             }
         
-            // Expire reservation
             if (remaining <= 0) {
-                showToast("⏱️ Reservation expired!", false);
-        
-                clearSession();
-        
-                renderMap();
-                switchView('map');
+                window.showToast("⏱️ Reservation expired!", false);
+                window.clearSession();
+                window.renderMap();
+                window.switchView('map');
                 return;
             }
         }
 
-        function clearSession() {
+        window.clearSession = function() {
             const mySpot = spots.find(s => s.id === activeSession?.spotId);
             if (mySpot) {
                 mySpot.status = 'empty';
@@ -558,7 +584,7 @@
         }
 
         // Run on load
-        initApp();
+        window.initApp();
     </script>
 </body>
 </html>
