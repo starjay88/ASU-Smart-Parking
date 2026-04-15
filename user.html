@@ -190,6 +190,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+        // 1. Import Firestore modules
+        import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB7OgTN8aChXK3aCyLzJ7SV5Qz0hiTyc5s",
@@ -203,8 +205,11 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        // 2. Connect to Firestore database
+        const db = getFirestore(app);
+        // Cloud database reference for the parking lot (Collection: parking, Document: mainLot)
+        const parkingDocRef = doc(db, "parking", "mainLot");
 
-        // --- Custom Toast UI ---
         window.showToast = function(message, isSuccess = true) {
             const toast = document.getElementById("toast");
             toast.innerText = message;
@@ -213,7 +218,6 @@
             setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        // --- Data & LocalStorage Logic ---
         let spots = [];
         const defaultSpots = [
             { id: 'A1', status: 'empty' }, { id: 'A2', status: 'occupied' }, { id: 'A3', status: 'empty' }, { id: 'A4', status: 'empty' }, { id: 'A5', status: 'occupied' },
@@ -230,10 +234,21 @@
         let reservationLimit = 300000;
         let finalWarningLimit = 90000;
 
-        // Initialize App
         window.initApp = function() {
-            const savedSpots = localStorage.getItem('asuSpots');
-            spots = savedSpots ? JSON.parse(savedSpots) : defaultSpots;
+            // 🔥 3. Real-time Synchronization Magic (onSnapshot)
+            // This block runs automatically whenever the database (parkingDocRef) changes!
+            onSnapshot(parkingDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    // Fetch data if it exists in the cloud
+                    spots = docSnap.data().spotsArray;
+                    window.renderMap(); 
+                } else {
+                    // First-time setup: Push default parking data if the cloud document is empty
+                    setDoc(parkingDocRef, { spotsArray: defaultSpots });
+                    spots = defaultSpots;
+                    window.renderMap();
+                }
+            });
 
             const savedUser = localStorage.getItem('asuUser');
             const savedSession = localStorage.getItem('asuSession');
@@ -246,22 +261,9 @@
             if(savedUser) {
                 currentUser = JSON.parse(savedUser);
                 window.loginSuccessUI(currentUser.name, currentUser.email);
-            } else {
-                window.renderMap(); 
             }
-            globalTimer = setInterval(window.checkReservationStatus, 1000);
             
-            // Free expired user reservations on load
-            spots.forEach(spot => {
-                if (spot.reservedAt) {
-                    const elapsed = Date.now() - spot.reservedAt;
-                    if (elapsed > reservationLimit) {
-                        spot.status = 'empty';
-                        delete spot.reservedAt;
-                    }
-                }
-            });
-            localStorage.setItem('asuSpots', JSON.stringify(spots));
+            globalTimer = setInterval(window.checkReservationStatus, 1000);
         }
 
         // --- Firebase Auth Logic ---
@@ -325,15 +327,17 @@
             document.getElementById('main-header').style.display = 'block';
             document.getElementById('main-nav').style.display = 'flex';
             window.switchView('map');
-            window.renderMap();
+            // renderMap is now handled by onSnapshot automatically
         }
 
         window.logout = async function() {
             try {
                 await signOut(auth);
                 localStorage.removeItem('asuUser');
-                localStorage.removeItem('asuSession'); 
-                activeSession = null;
+                
+                // Clear reservation upon logout
+                if(activeSession) window.clearSession();
+                
                 currentUser = null;
                 
                 document.getElementById('main-header').style.display = 'none';
@@ -393,7 +397,6 @@
                 }
             });
             document.getElementById('availableCount').innerText = emptyCount;
-            localStorage.setItem('asuSpots', JSON.stringify(spots)); 
         }
 
         window.handleSpotClick = function(spot) {
@@ -413,6 +416,10 @@
             const dateNow = Date.now();
             spot.status = 'occupied';
             spot.reservedAt = dateNow;
+            
+            // 🔥 4. Update the cloud (DB) when a spot is reserved
+            setDoc(parkingDocRef, { spotsArray: spots });
+
             activeSession = {
                 spotId: spot.id,
                 startTime: dateNow,
@@ -423,7 +430,6 @@
             localStorage.setItem('asuSession', JSON.stringify(activeSession));
             
             window.showToast(`✅ Spot ${spot.id} Reserved! Timer started.`);
-            window.renderMap();
         }
 
         // --- SPA & Dynamic Timer Logic ---
@@ -504,7 +510,6 @@
                     btn.innerText = 'Pay Now';
                     btn.disabled = false;
                     window.switchView('map');
-                    window.renderMap();
                 }, 1500);
 
             }, 1000); 
@@ -532,9 +537,9 @@
                 }
             });
             
+            // 🔥 5. Update the cloud (DB) with expired spot statuses
             if (spotsChanged) {
-                localStorage.setItem('asuSpots', JSON.stringify(spots));
-                window.renderMap();
+                setDoc(parkingDocRef, { spotsArray: spots });
             }
             
             if (!activeSession || !activeSession.reservedAt) return;
@@ -565,7 +570,6 @@
             if (remaining <= 0) {
                 window.showToast("⏱️ Reservation expired!", false);
                 window.clearSession();
-                window.renderMap();
                 window.switchView('map');
                 return;
             }
@@ -576,11 +580,12 @@
             if (mySpot) {
                 mySpot.status = 'empty';
                 delete mySpot.reservedAt;
+                // 🔥 6. Update the cloud (DB) when a spot is manually cleared
+                setDoc(parkingDocRef, { spotsArray: spots });
             }
         
             activeSession = null;
             localStorage.removeItem('asuSession');
-            localStorage.setItem('asuSpots', JSON.stringify(spots));
         }
 
         // Run on load
