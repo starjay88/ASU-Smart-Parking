@@ -32,30 +32,47 @@
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         .auth-title { font-size: 1.8rem; color: #0f172a; font-weight: 800; margin-bottom: 5px; }
         .auth-subtitle { color: #64748b; font-size: 0.95rem; margin-bottom: 35px; font-weight: 600;}
-        .auth-form { display: flex; flex-direction: column; gap: 12px; }
+        .auth-form { display: flex; flex-direction: column; gap: 18px; }
         .input-field { padding: 16px; border-radius: 12px; border: 1px solid #cbd5e1; font-size: 1rem; font-family: 'Plus Jakarta Sans', sans-serif; transition: 0.2s;}
         .input-field:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
         .auth-btn { background: #0f172a; color: white; border: none; padding: 18px; border-radius: 12px; font-size: 1.1rem; font-weight: 800; margin-top: 10px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(15,23,42,0.2);}
         .auth-btn:active { transform: scale(0.98); }
+        .auth-btn:hover { background-color: #1c2c50; transform: scale(1.05); }
         .auth-link { margin-top: 10px; color: #3b82f6; font-size: 0.9rem; font-weight: 700; cursor: pointer; text-decoration: underline;}
         .auth-switch { margin-top: 30px; color: #64748b; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
         .auth-switch span { color: #3b82f6; text-decoration: underline;}
 
         /* Map View */
         .status-card { background: white; margin: -15px 20px 20px 20px; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); text-align: center; position: relative; z-index: 10; }
-        .status-card h2 { margin: 0; font-size: 3rem; color: #10b981; font-weight: 800; line-height: 1; }
-        .status-card p { margin: 5px 0 0 0; color: #64748b; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px;}
+        .status-card h2 { margin: 0; font-size: 3rem; color: #10b981; font-weight: 800; line-height: 1; text-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .status-card p { margin: 5px 0 0 0; color: #64748b; font-size: 0.85rem; font-weight: 700; letter-spacing: 1px; }
         .map-section { padding: 0 20px; }
         .map-section h3 { font-size: 1.1rem; color: #1e293b; margin-bottom: 12px; font-weight: 800; }
         .parking-lot-wrapper { background: #374151; border-radius: 16px; padding: 15px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); }
         .zone-label { color: #9ca3af; font-size: 0.7rem; font-weight: 800; letter-spacing: 1.5px; margin: 10px 0 5px 0; padding-left: 2px; }
+        .zone-label::before { content: "📍 "; }
         .spot-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
         .spot { padding: 12px 0; text-align: center; border-radius: 6px; font-size: 0.8rem; font-weight: 800; color: white; border: 1.5px solid rgba(255,255,255,0.15); transition: all 0.2s; cursor: pointer; }
+        .spot:hover { transform: scale(1.05) }
         .empty { background-color: #10b981; border-color: #34d399; }
-        .occupied { background-color: #ef4444; border-color: #f87171; opacity: 0.4; }
-        .my-spot { background-color: #f59e0b; border-color: #fbbf24; opacity: 1; box-shadow: 0 0 10px rgba(245,158,11,0.5);} 
+        .empty:hover { background-color: #0c8a60; border-color: #26ae7c; }
+        .occupied { background-color: #ef4444; border-color: #f87171; opacity: 0.6; filter: grayscale(20%); }
+        .occupied:hover { background-color: #eb1515; border-color: #f64040; }
+        .my-spot { background-color: #f59e0b; border-color: #fbbf24; opacity: 1; box-shadow: 0 0 10px rgba(245,158,11,0.5); transform: scale(1.1); position: relative } 
+        .my-spot:hover { background-color: #2563eb; border-color: #3b82f6; transform: scale(1.15); color: transparent; box-shadow: 0 0 10px rgba(37,99,235,0.5); }
+        .my-spot:hover::after { content: "PAY"; color: white; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
         .driving-lane { height: 20px; background: #4b5563; border-radius: 4px; margin: 12px 0; position: relative; }
         .driving-lane::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: repeating-linear-gradient(90deg, #fbbf24 0, #fbbf24 10px, transparent 10px, transparent 20px); transform: translateY(-50%); }
+        #confirm-modal { position: absolute; inset: 0; z-index: 2000; display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; transition: opacity 0.25s; opacity: 0; pointer-events: none; }
+        #confirm-modal.active { opacity: 1; pointer-events: all; }
+        .modal-overlay { position: absolute; inset: 0; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(0px); opacity: 0; transition: opacity 0.25s; }
+        .modal-box { position: relative; width: 90%; max-width: 360px; background: white; border-radius: 20px; padding: 20px; z-index: 1; transition: all 0.25s ease 0.05s; opacity: 0; transform: scale(0.9); }
+        #confirm-modal.active .modal-overlay { opacity: 1; }
+        #confirm-modal.active .modal-box { opacity: 1; transform: scale(1); }
+        .modal-header { display: flex; justify-content: flex-end; }
+        #modal-close { cursor: pointer; font-size: 1.2rem; font-weight: bold; }
+        #confirm-btn { width: 100%; padding: 15px; margin-top: 20px; background: #10b981; color: white; border: none; border-radius: 12px; font-weight: 800; transition: 0.2s }
+        #confirm-btn:hover { background: #0c8a60; transform: scale(1.05); }
 
         /* Pay View */
         .pay-section { padding: 20px; }
@@ -67,7 +84,9 @@
         .detail-row span:last-child { color: #0f172a; font-weight: 800; }
         .pay-btn { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; width: 100%; padding: 16px; border-radius: 12px; font-size: 1.1rem; font-weight: 800; margin-top: 25px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(37,99,235,0.3); }
         .pay-btn:active { transform: scale(0.98); }
+        .pay-btn:hover { background: linear-gradient(135deg, #0b63f3, #134cca); transform: scale(1.05); }
         .pay-btn:disabled { background: #94a3b8; cursor: not-allowed; box-shadow: none; }
+        .pay-btn:disabled:hover { background: #7589a4; transform: scale(1.05); }
         
         /* Profile View */
         .profile-section { padding: 20px; }
@@ -87,9 +106,10 @@
 
         /* Bottom Navigation */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 414px; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #e2e8f0; box-shadow: 0 -4px 10px rgba(0,0,0,0.03); z-index: 100; }
-        .nav-item { text-align: center; color: #94a3b8; font-size: 0.75rem; font-weight: 800; cursor: pointer; transition: 0.2s; width: 33%;}
-        .nav-item.active { color: #3b82f6; transform: translateY(-2px);}
-        .nav-icon { font-size: 1.4rem; display: block; margin-bottom: 4px; filter: grayscale(100%); opacity: 0.6; transition: 0.2s;}
+        .nav-item { text-align: center; color: #94a3b8; font-size: 0.75rem; font-weight: 800; cursor: pointer; transition: 0.2s; width: 33%; padding: 6px 0; }
+        .nav-item:hover { transform: translateY(-2px) scale(1.1) }
+        .nav-item.active { color: #2563eb; transform: translateY(-4px) scale(1.2) }
+        .nav-icon { font-size: 1.4rem; display: block; margin-bottom: 4px; filter: grayscale(100%); opacity: 0.6; transition: 0.2s; }
         .nav-item.active .nav-icon { filter: grayscale(0%); opacity: 1; }
     </style>
 </head>
@@ -101,19 +121,24 @@
         
         <div class="app-header" id="main-header" style="display: none;">
             <h1>ASU Smart Parking</h1>
+            <p style="margin:0; font-size:0.8rem; opacity:0.8; padding:0.5rem 0.4rem 0.4rem 0.4rem;">Your Real-Time Campus Parking System</p>
             <div class="user-badge" id="header-badge">DRIVER MODE</div>
         </div>
 
         <div id="view-login" class="view-section active">
             <div class="auth-container">
                 <div class="auth-brand-logo"><span>ASU</span> Smart Parking</div>
-                <h2 class="auth-title" id="auth-title">Welcome Back</h2>
-                <p class="auth-subtitle" id="auth-subtitle">Log in to find your parking spot instantly</p>
+                <h2 class="auth-title" id="auth-title">Welcome back!</h2>
+                <p class="auth-subtitle" id="auth-subtitle">Log in to find your parking spot instantly.</p>
                 
                 <form class="auth-form" onsubmit="window.handleAuth(event)">
+                    <label id="auth-name-label" style="font-size:0.75rem; color:#64748b; text-align: left; display: none;">Name</label>
                     <input type="text" id="auth-name" class="input-field" placeholder="Full Name" style="display: none;">
+                    <label style="font-size:0.75rem; color:#64748b; text-align: left;">Email</label>
                     <input type="email" id="auth-email" class="input-field" placeholder="ASU Email (@asu.edu)" required>
+                    <label style="font-size:0.75rem; color:#64748b; text-align: left;">Password</label>
                     <input type="password" id="auth-password" class="input-field" placeholder="Password" required>
+                    <label id="auth-confirm-password-label" style="font-size:0.75rem; color:#64748b; text-align: left; display: none;">Confirm Password</label>
                     <input type="password" id="auth-confirm-password" class="input-field" placeholder="Confirm Password" style="display: none;">
                     
                     <div class="auth-link" id="auth-forget-link" onclick="window.resetPassword()" style="margin-top:-5px;">Forgot Password?</div>
@@ -130,7 +155,7 @@
         <div id="view-map" class="view-section">
             <div class="status-card">
                 <h2 id="availableCount">--</h2>
-                <p>SPOTS AVAILABLE NOW</p>
+                <p>Available Parking Spots</p>
             </div>
             <div class="map-section">
                 <h3>Live Floor Map</h3>
@@ -184,6 +209,21 @@
             <div class="nav-item active" id="nav-map" onclick="window.switchView('map')"><span class="nav-icon">📍</span>Map</div>
             <div class="nav-item" id="nav-pay" onclick="window.switchView('pay')"><span class="nav-icon">💳</span>Pay</div>
             <div class="nav-item" id="nav-profile" onclick="window.switchView('profile')"><span class="nav-icon">👤</span>Profile</div>
+        </div>
+
+        <div id="confirm-modal">
+            <div class="modal-overlay"></div>
+            <div class="modal-box">
+                <div class="modal-header">
+                <span id="modal-close">✕</span>
+                </div>
+                <h3>Confirm Reservation</h3>
+                <p id="modal-spot">Spot: --</p>
+                <p id="modal-timer">Time Limit: 5 minutes</p>
+                <p id="modal-rate">$0.01 / 10 seconds</p>
+
+                <button id="confirm-btn">Confirm</button>
+            </div>
         </div>
     </div>
 
@@ -270,12 +310,14 @@
         let isLoginMode = true;
         window.toggleAuthMode = function() {
             isLoginMode = !isLoginMode;
-            document.getElementById('auth-title').innerText = isLoginMode ? 'Welcome Back' : 'Create Account';
-            document.getElementById('auth-subtitle').innerText = isLoginMode ? 'Log in to find your parking spot instantly' : 'Sign up to access real-time ASU parking';
+            document.getElementById('auth-title').innerText = isLoginMode ? 'Welcome back!' : 'Create Account';
+            document.getElementById('auth-subtitle').innerText = isLoginMode ? 'Log in to find your parking spot instantly.' : 'Sign up to access real-time ASU parking.';
             document.getElementById('auth-btn').innerText = isLoginMode ? 'Log In' : 'Sign Up';
             document.getElementById('auth-switch-text').innerHTML = isLoginMode ? "Don't have an account? <span>Sign Up</span>" : "Already have an account? <span>Log In</span>";
             document.getElementById('auth-name').style.display = isLoginMode ? 'none' : 'block';
+            document.getElementById('auth-name-label').style.display = isLoginMode ? 'none' : 'block';
             document.getElementById('auth-confirm-password').style.display = isLoginMode ? 'none' : 'block';
+            document.getElementById('auth-confirm-password-label').style.display = isLoginMode ? 'none' : 'block';
             document.getElementById('auth-forget-link').style.display = isLoginMode ? 'block' : 'none';
         }
 
@@ -311,7 +353,7 @@
                 console.error(error);
                 let errorMessage = error.message;
                 if(error.code === 'auth/email-already-in-use') errorMessage = "Email is already registered.";
-                if(error.code === 'auth/invalid-credential') errorMessage = "Incorrect email or password.";
+                if(error.code === 'auth/invalid-credential') errorMessage = "Email or password is incorrect. Please try again.";
                 if(error.code === 'auth/weak-password') errorMessage = "Password should be at least 6 characters.";
                 window.showToast("❌ " + errorMessage, false);
             } finally {
@@ -401,7 +443,7 @@
 
         window.handleSpotClick = function(spot) {
             if(activeSession && activeSession.spotId === spot.id) {
-                window.showToast("Navigate to the Pay tab to checkout.", false);
+                window.switchView('pay');
                 return;
             }
             if(activeSession) {
@@ -409,14 +451,49 @@
                 return;
             }
             if(spot.status === 'occupied') {
-                window.showToast("Spot is already taken.", false);
+                window.showToast("This spot is already occupied.", false);
                 return;
             }
-            
+
+            window.selectedSpot = spot;
+            window.openConfirmModal(spot);
+
+            document.getElementById('modal-close').onclick = window.closeConfirmModal;
+            document.querySelector('.modal-overlay').onclick = window.closeConfirmModal;
+
+            document.getElementById('confirm-btn').onclick = function() {
+                if (!window.selectedSpot) return;
+
+                window.reserveSpot(window.selectedSpot);
+                window.closeConfirmModal();
+            };
+        }
+
+        window.openConfirmModal = function(spot) {
+            const modal = document.getElementById('confirm-modal');            
+            modal.classList.add('active');
+
+            document.getElementById('modal-spot').innerText = `Spot: ${spot.id}`;
+
+            // show pricing + timer info
+            document.getElementById('modal-timer').innerText = 
+                `Time Limit: ${reservationLimit / 60000} minutes`;
+
+            document.getElementById('modal-rate').innerText = 
+                `$0.01 per 10 seconds`;
+        }
+
+        window.closeConfirmModal = function() {
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.remove('active');
+        }
+
+        window.reserveSpot = function(spot) {
             const dateNow = Date.now();
+
             spot.status = 'occupied';
             spot.reservedAt = dateNow;
-            
+
             // 🔥 4. Update the cloud (DB) when a spot is reserved
             setDoc(parkingDocRef, { spotsArray: spots });
 
@@ -427,8 +504,9 @@
                 halfTimeWarned: false,
                 finalWarned: false
             };
+
             localStorage.setItem('asuSession', JSON.stringify(activeSession));
-            
+
             window.showToast(`✅ Spot ${spot.id} Reserved! Timer started.`);
         }
 
